@@ -1,9 +1,10 @@
 {
- "generated": "2026-10-09 19:11",
+ "generated": "2026-10-09 19:14",
  "sources": {
   "통계누리": {
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='stat.molit.go.kr', port=443): Max retries exceeded with url: /portal/cate/statView.do?hRsId=32&hFormId=2082 (Caused by ConnectTimeoutError(<HTTPSConnection(host='stat.molit.go.kr', port=443) at 0x7fcc885d6180>, 'Connection to stat.molit.go.kr timed out. (connect timeout=60)"
+   "ok": true,
+   "latest": "2026-08",
+   "regions": 249
   },
   "청약홈": {
    "ok": true,
