@@ -1,0 +1,16 @@
+{
+ "generated": "2026-10-09 18:43",
+ "sources": {
+  "통계누리": {
+   "ok": true,
+   "latest": "2026-08",
+   "regions": 249
+  },
+  "청약홈": {
+   "ok": true,
+   "rows": 148,
+   "fails": 0,
+   "fetched": 11
+  }
+ }
+}

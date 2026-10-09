@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>아파트 분양시장 청약 · 미분양 현황 대시보드</title>
+<meta name="description" content="청약홈 APT 분양공고의 공급금액 · 청약 경쟁률과 국토교통부 시·군·구별 미분양 · 준공 후 미분양을 한 화면에 모은 대시보드">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://apt-watch.pages.dev/">
+<meta property="og:title" content="아파트 분양시장 청약 · 미분양 현황 대시보드">
+<meta property="og:description" content="최근 분양 단지 공급금액 · 1순위 경쟁률과 시·군·구별 미분양 · 준공 후 미분양">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 단일 컬럼 대시보드 — 상단 요약 3칸(미분양 · 준공 후 미분양 · 최근 청약), 최근 분양 단지 표(행 펼침: 주택형별), 시·군·구별 미분양 표
+   토큰은 daily-ratings · cons-ratings와 동일하게 유지 */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --line:#dfe2e8; --fg:#1b2230; --muted:#5d6678;
+  --accent:#2747a8; --accent-soft:#e8edf9;
+  --up:#c8302f; --down:#2453c4; --flat:#6b7383;
+  --spark:#2747a8; --spark-fill:rgba(39,71,168,.10);
+  --g-a1:#1f7a4d; --g-a2:#4c7a1f; --g-a3:#a26a00; --g-b:#b3401f;
+  --ok:#1f7a4d; --bad:#b3401f; --pf:#7a3fa8; --pf-bg:#f3ebfa;
+  --seg1:#2747a8; --seg2:#5f78c4; --seg3:#9aabdc; --seg4:#cdd6ee;
+  --f-sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11151d; --surface:#181e29; --line:#2a3242; --fg:#e6e9ef; --muted:#97a0b2;
+  --accent:#8ea8ff; --accent-soft:#1f2a45;
+  --up:#ff7a72; --down:#7aa2ff; --flat:#8b93a3;
+  --spark:#8ea8ff; --spark-fill:rgba(142,168,255,.14);
+  --g-a1:#5fd19a; --g-a2:#a6d16a; --g-a3:#f0bb4a; --g-b:#ff8a63;
+  --ok:#5fd19a; --bad:#ff8a63; --pf:#d2a6ff; --pf-bg:#2c2140;
+  --seg1:#8ea8ff; --seg2:#6680cc; --seg3:#46599a; --seg4:#2e3a5e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11151d; --surface:#181e29; --line:#2a3242; --fg:#e6e9ef; --muted:#97a0b2;
+  --accent:#8ea8ff; --accent-soft:#1f2a45;
+  --up:#ff7a72; --down:#7aa2ff; --flat:#8b93a3;
+  --spark:#8ea8ff; --spark-fill:rgba(142,168,255,.14);
+  --g-a1:#5fd19a; --g-a2:#a6d16a; --g-a3:#f0bb4a; --g-b:#ff8a63;
+  --ok:#5fd19a; --bad:#ff8a63; --pf:#d2a6ff; --pf-bg:#2c2140;
+  --seg1:#8ea8ff; --seg2:#6680cc; --seg3:#46599a; --seg4:#2e3a5e; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-sans);font-size:14px;line-height:1.5}
+.wrap{max-width:1680px;margin:0 auto;padding-inline:16px;padding-block:24px 40px;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px}
+h1{font-size:1.45rem;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);font-size:.85rem;margin:2px 0 0;max-width:110ch}
+.hright{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.sisters{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.updated{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);text-align:right}
+.sister{font-size:.76rem;font-weight:600;color:var(--accent);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:3px 9px;white-space:nowrap}
+.sister:hover{background:var(--accent-soft)}
+.sister .sl{color:var(--muted);font-weight:500}
+.sister:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+h2{font-size:.78rem;font-weight:600;letter-spacing:.08em;color:var(--muted);margin:0}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.sec-head .note{font-size:.78rem;color:var(--muted)}
+
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.kpi{padding:16px 18px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.kpi + .kpi{border-left:1px solid var(--line)}
+.kpi .name{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.kpi .name b{font-weight:600;font-size:.95rem}
+.kpi .name span{font-size:.72rem;color:var(--muted)}
+.kpi .val{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.kpi .num{font-family:var(--f-mono);font-size:1.9rem;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.kpi .num small{font-size:.9rem;color:var(--muted);margin-left:2px}
+.chg{font-family:var(--f-mono);font-size:.85rem;font-variant-numeric:tabular-nums}
+.chg.up{color:var(--up)} .chg.down{color:var(--down)} .chg.flat{color:var(--flat)}
+.split{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.78rem;color:var(--muted)}
+.split b{font-family:var(--f-mono);font-weight:500;color:var(--fg);font-variant-numeric:tabular-nums}
+.split .chg{font-size:.74rem}
+.spark{width:100%;height:46px;display:block}
+.sparkbox{position:relative;touch-action:pan-y;cursor:crosshair;outline:none;border-radius:4px}
+.sparkbox:focus-visible{box-shadow:0 0 0 2px var(--accent)}
+.spark-guide,.spark-dot,.spark-tip{position:absolute;pointer-events:none}
+.spark-guide{top:0;bottom:0;width:1px;background:var(--muted);opacity:.45}
+.spark-dot{width:9px;height:9px;border-radius:50%;background:var(--spark);border:2px solid var(--surface);transform:translate(-50%,-50%)}
+.spark-tip{top:-26px;transform:translateX(-50%);background:var(--fg);color:var(--bg);font-family:var(--f-mono);font-size:.72rem;line-height:1;padding:5px 7px;border-radius:5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.axis{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.68rem;color:var(--muted);margin-top:2px}
+.stack{display:flex;height:14px;border-radius:4px;overflow:hidden;background:var(--line);gap:1px}
+.stack span{display:block;height:100%;min-width:2px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.72rem;color:var(--muted);font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.placeholder{padding:22px;color:var(--muted);grid-column:1/-1}
+
+.status{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.76rem;color:var(--muted);align-items:center}
+.status .src{display:inline-flex;align-items:center;gap:5px}
+.status .dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.status .src.bad .dot{background:var(--bad)}
+
+.filters{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;margin-bottom:10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{all:unset;cursor:pointer;padding:6px 9px;font-size:.85rem;color:var(--muted)}
+.seg button + button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.seg button:focus-visible,select:focus-visible,input:focus-visible,th button:focus-visible,.info summary:focus-visible,tr.row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+label.f{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted)}
+select,input[type=search]{font:inherit;font-size:.85rem;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+input[type=search]{min-width:0;width:170px}
+input[type=checkbox]{accent-color:var(--accent)}
+.tail{margin-left:auto;display:flex;align-items:center;gap:10px}
+.count{font-size:.82rem;color:var(--muted);white-space:nowrap}
+.dl{font:inherit;font-size:.82rem;font-weight:600;color:var(--accent);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.dl:hover{background:var(--accent-soft)}
+.dl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dl:disabled{opacity:.6;cursor:progress}
+.dl svg{width:14px;height:14px}
+
+.table-box{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:78vh}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:.84rem}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
+
+th:first-child,td:first-child{padding-left:12px}
+th{font-size:.74rem;font-weight:600;color:var(--muted);background:var(--surface);position:sticky;top:0;z-index:2}
+th button{all:unset;cursor:pointer}
+th button::after{content:"";margin-left:4px}
+th[aria-sort="ascending"] button::after{content:"▲"}
+th[aria-sort="descending"] button::after{content:"▼"}
+tbody tr:last-child td{border-bottom:0}
+tr.row{cursor:pointer}
+tr.row:hover td{background:var(--accent-soft)}
+tr.row[aria-expanded="true"] td{background:var(--accent-soft);border-bottom-color:transparent}
+td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+td.nm{font-weight:600;white-space:normal;word-break:keep-all;min-width:12em;max-width:22em}
+td.nm small{display:block;font-weight:400;color:var(--muted);font-size:.72rem;margin-top:1px}
+td.rg small,td.bd small{display:block;color:var(--muted);font-size:.72rem}
+td.bd{white-space:normal;word-break:keep-all;min-width:8em;max-width:12em}
+.kd{font-family:var(--f-mono);font-size:.66rem;font-weight:500;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;line-height:1.4;margin-left:4px;vertical-align:1px}
+.kd.pub{color:var(--pf);border-color:currentColor}
+.st{font-size:.74rem;font-weight:600;padding:2px 7px;border-radius:4px;border:1px solid currentColor;white-space:nowrap}
+.st.s1{color:var(--g-a1)} .st.s2{color:var(--g-a2)} .st.s3{color:var(--g-a3)} .st.s4{color:var(--g-b)} .st.s0{color:var(--muted);border-color:var(--line)}
+.rate b{font-weight:600}
+.rate i{font-style:normal;color:var(--muted);font-size:.74rem;margin-left:1px}
+.dim{color:var(--muted)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.chev{display:inline-block;width:12px;color:var(--muted);transition:transform .15s}
+tr.row[aria-expanded="true"] .chev{transform:rotate(90deg)}
+tr.det td{background:var(--bg);white-space:normal;padding:12px 16px 16px}
+.detail{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:18px;align-items:start;position:sticky;left:16px;max-width:calc(100vw - 66px)}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:.8rem}
+.meta dt{color:var(--muted);white-space:nowrap}
+.meta dd{margin:0;word-break:keep-all;min-width:0}
+.meta a{color:var(--accent);text-decoration:none}
+.meta a:hover{text-decoration:underline}
+.sub-t{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:auto}
+.sub-t table{font-size:.8rem}
+.sub-t th{position:static;background:var(--surface)}
+.sub-t td,.sub-t th{padding:5px 8px}
+.sub-t th:last-child,.sub-t td:last-child{width:auto}
+td.spk{min-width:140px;padding-block:4px}
+td.spk svg{width:140px;height:26px;display:block}
+td.mv{font-family:var(--f-mono);font-size:.8rem;font-variant-numeric:tabular-nums;text-align:right}
+td.mv.up{color:var(--up)} td.mv.down{color:var(--down)} td.mv.flat{color:var(--flat)}
+td.amt .aw{display:flex;align-items:center;justify-content:flex-end;gap:10px}
+td.amt .bar{width:80px;height:6px;background:var(--line);border-radius:3px;overflow:hidden;flex:none}
+td.amt .bar i{display:block;height:100%;background:var(--spark);opacity:.75;min-width:1px}
+tr.sido td{font-weight:600;background:var(--bg)}
+.key{display:inline-flex;gap:12px;flex-wrap:wrap;font-size:.76rem;color:var(--muted)}
+
+.info{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:.84rem}
+.info summary{cursor:pointer;font-weight:600}
+.info p{margin:8px 0 0;color:var(--muted);max-width:86ch}
+footer{font-size:.76rem;color:var(--muted);line-height:1.65}
+footer p{margin:0 0 6px}
+footer .contact{margin-top:10px}
+footer a{color:var(--accent);text-decoration:none}
+footer a:hover{text-decoration:underline}
+footer .ct{white-space:nowrap}
+
+@media (max-width:900px){
+  .detail{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .kpis{grid-template-columns:1fr}
+  .kpi + .kpi{border-left:0;border-top:1px solid var(--line)}
+  .tail{margin-left:0;width:100%;justify-content:space-between}
+  input[type=search]{width:100%}
+  label.f.search{flex:1 1 100%}
+  .hright{align-items:flex-start}
+  .sisters{justify-content:flex-start}
+  .updated{text-align:left}
+  td.nm{min-width:9em;max-width:12em}
+  footer .ct{display:block;margin-top:6px}
+  footer .contact .sister{margin:4px 0 0 !important}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>아파트 분양시장 청약 · 미분양 현황 대시보드</h1>
+      <p class="sub">청약홈 APT 분양공고(최근 6개월)의 공급금액 · 청약 경쟁률과 국토교통부 시·군·구별 미분양 · 준공 후 미분양 · 평일 오전(08:00) 자동 갱신</p>
+    </div>
+    <div class="hright">
+      <div class="sisters">
+        <a class="sister" href="https://daily-ratings.pages.dev/" target="_blank" rel="noopener"><span class="sl">관련 대시보드:</span> → 유동화시장 등급 · 금리 현황</a>
+        <a class="sister" href="https://cons-ratings.pages.dev/" target="_blank" rel="noopener"><span class="sl">관련 대시보드:</span> → 시공사 시공능력평가 · 신용등급</a>
+      </div>
+      <div class="updated" id="updated">데이터 불러오는 중…</div>
+    </div>
+  </header>
+
+  <section aria-labelledby="h-sum">
+    <div class="sec-head">
+      <h2 id="h-sum">요약</h2>
+      <span class="note" id="sum-note"></span>
+    </div>
+    <div class="kpis" id="kpis"><div class="placeholder">요약 불러오는 중…</div></div>
+  </section>
+
+  <section aria-labelledby="h-sub">
+    <div class="sec-head">
+      <h2 id="h-sub">최근 분양 단지 · 청약 결과</h2>
+      <div class="status" id="status"></div>
+    </div>
+    <div class="sec-head">
+      <span class="key"><span>공급금액은 모집공고 최고가 기준(발코니 확장 · 옵션 제외)</span><span>평당가 = 공급금액 ÷ 공급면적(3.3㎡)</span><span>1순위 경쟁률 = 1순위 접수건수 ÷ 일반공급 세대</span><span>행을 누르면 주택형별 내용이 펼쳐집니다</span></span>
+    </div>
+    <div class="filters">
+      <div class="seg" role="group" aria-label="모집공고 기간" id="seg-per">
+        <button type="button" data-v="1" aria-pressed="false">1개월</button>
+        <button type="button" data-v="3" aria-pressed="true">3개월</button>
+        <button type="button" data-v="6" aria-pressed="false">6개월</button>
+      </div>
+      <div class="seg" role="group" aria-label="주택 구분" id="seg-kind">
+        <button type="button" data-v="all" aria-pressed="false">전체</button>
+        <button type="button" data-v="민영" aria-pressed="true">민영</button>
+        <button type="button" data-v="국민" aria-pressed="false">공공(국민)</button>
+      </div>
+      <label class="f" for="f-sido">지역
+        <select id="f-sido"><option value="all">전체</option><option value="cap">수도권</option><option value="loc">지방</option></select>
+      </label>
+      <label class="f" for="f-res">청약결과
+        <select id="f-res">
+          <option value="all">전체</option><option value="1순위 마감">1순위 마감</option><option value="순위 내 마감">순위 내 마감</option>
+          <option value="접수 종료">접수 종료(마감 못함)</option><option value="미달">미달</option><option value="진행">접수 전 · 접수 중</option>
+        </select>
+      </label>
+      <label class="f search" for="f-q"><input type="search" id="f-q" placeholder="단지명 · 시공사 · 시군구 검색"></label>
+      <div class="tail"><span class="count" id="count-s"></span>
+      <button type="button" class="dl" id="dl-s" title="지금 표에 보이는 필터 · 정렬 그대로 엑셀로 받습니다(주택형별 시트 포함)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 13.5h11"/></svg>엑셀 다운로드</button></div>
+    </div>
+    <div class="table-box">
+      <table>
+        <thead><tr id="thead-s">
+          <th data-k="notice" aria-sort="descending"><button type="button">모집공고일</button></th>
+          <th data-k="rg"><button type="button">지역</button></th>
+          <th data-k="name"><button type="button">단지명</button></th>
+          <th data-k="builder"><button type="button">시공사</button></th>
+          <th class="num" data-k="units"><button type="button">세대수</button></th>
+          <th class="num" data-k="p84"><button type="button">84㎡ 최고가</button></th>
+          <th class="num" data-k="ppy"><button type="button">평당가(만원)</button></th>
+          <th class="num" data-k="rate"><button type="button">1순위 경쟁률</button></th>
+          <th data-k="st"><button type="button">청약결과</button></th>
+          <th class="num" data-k="un"><button type="button">시군구 미분양</button></th>
+        </tr></thead>
+        <tbody id="tbody-s"><tr><td colspan="10" class="empty">불러오는 중…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-un">
+    <div class="sec-head">
+      <h2 id="h-un">시·군·구별 미분양</h2>
+      <span class="note" id="un-note"></span>
+    </div>
+    <div class="filters">
+      <div class="seg" role="group" aria-label="보기 단위" id="seg-lv">
+        <button type="button" data-v="sgg" aria-pressed="true">시·군·구</button>
+        <button type="button" data-v="sido" aria-pressed="false">시·도 합계</button>
+      </div>
+      <label class="f" for="u-sido">시·도
+        <select id="u-sido"><option value="all">전체</option></select>
+      </label>
+      <label class="f" for="u-nz"><input type="checkbox" id="u-nz" checked> 미분양 있는 곳만</label>
+      <label class="f search" for="u-q"><input type="search" id="u-q" placeholder="시군구 검색"></label>
+      <div class="tail"><span class="count" id="count-u"></span>
+      <button type="button" class="dl" id="dl-u" title="지금 표에 보이는 필터 · 정렬 그대로 엑셀로 받습니다(최근 13개월 월별 포함)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 13.5h11"/></svg>엑셀 다운로드</button></div>
+    </div>
+    <div class="table-box">
+      <table>
+        <thead><tr id="thead-u">
+          <th data-k="sido"><button type="button">시·도</button></th>
+          <th data-k="sgg"><button type="button">시·군·구</button></th>
+          <th class="num" data-k="t"><button type="button">미분양(호)</button></th>
+          <th class="num" data-k="tm"><button type="button">전월 대비</button></th>
+          <th class="num" data-k="ty"><button type="button">1년 전 대비</button></th>
+          <th class="num" data-k="d" aria-sort="descending"><button type="button">준공 후 미분양(호)</button></th>
+          <th class="num" data-k="dm"><button type="button">전월 대비</button></th>
+          <th class="num" data-k="dr"><button type="button">준공 후 비중</button></th>
+          <th data-k="spk">미분양 추이(13개월)</th>
+        </tr></thead>
+        <tbody id="tbody-u"><tr><td colspan="9" class="empty">불러오는 중…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <details class="info">
+    <summary>데이터 기준과 읽는 법</summary>
+    <p>청약 자료는 한국부동산원 청약홈의 APT 분양정보입니다. 모집공고일 기준 최근 6개월 공고를 받아 단지별 공급위치 · 세대수 · 주택형별 공급금액(최고가) · 시행사 · 시공사 · 입주예정월과, 주택형 · 순위 · 지역별 접수건수 및 청약결과를 정리했습니다. 무순위 · 잔여세대, 오피스텔 · 도시형생활주택은 포함하지 않습니다.</p>
+    <p>세대수는 일반공급 세대(특별공급 미달분 이월 반영)이며, 괄호 안은 공급규모(특별공급 포함)입니다. 1순위 경쟁률은 해당지역 · 기타지역을 합친 1순위 접수건수를 일반공급 세대로 나눈 값입니다. 청약결과는 주택형별 결과를 합쳐 모든 주택형이 1순위에서 마감되면 '1순위 마감', 2순위까지 모두 마감되면 '순위 내 마감', 1 · 2순위 접수 합계가 공급 세대보다 적은 주택형이 있으면 '미달(부족 세대 수)', 그 밖에 순위 내 마감 기준(예비입주자 포함)을 못 채운 경우 '접수 종료'로 표시합니다. 실제 계약률은 공개 자료가 없어 담지 않았습니다.</p>
+    <p>미분양 자료는 국토교통부 통계누리 '미분양주택현황보고'의 시 · 군 · 구별 미분양현황과 공사완료후 미분양현황입니다. 매월 말 전월분이 공표되며, 광주 · 전남은 통계누리 표기대로 '전남광주'로 묶어 보여줍니다. 표의 '시군구 미분양'은 해당 단지 소재 시 · 군 · 구의 최근월 미분양(괄호는 준공 후)입니다.</p>
+  </details>
+
+  <footer>
+    <p>출처: 한국부동산원 청약홈(APT 분양정보 · 청약 접수 경쟁률), 국토교통부 국토교통 통계누리(미분양주택현황보고). 이 화면은 공개된 자료를 모아 정리한 개인 참고용 자료이며, 정리 과정에서 지연 · 누락 · 오기가 생길 수 있고 원문과 다를 수 있습니다.</p>
+    <p>이 화면의 어떤 내용도 투자 권유나 여신 · 의사결정의 근거가 아니며, 이를 이용해 생긴 결과에 대해 작성자는 책임지지 않습니다. 정확한 내용은 청약홈 입주자모집공고와 국토교통부 원문 통계에서 확인하시기 바랍니다.</p>
+    <p>함께 보기: <a href="https://daily-ratings.pages.dev/" target="_blank" rel="noopener">유동화시장 등급 · 금리 현황 대시보드</a> · <a href="https://cons-ratings.pages.dev/" target="_blank" rel="noopener">시공사 시공능력평가 · 신용등급 현황 대시보드</a></p>
+    <p class="contact">제작자 / 문의: 한국투자증권 PF그룹 부동산금융1부 최이름 차장 <a class="sister" href="https://name-records.pages.dev/" target="_blank" rel="noopener" style="display:inline-block;margin:0 4px;text-decoration:none;white-space:nowrap"><span class="sl">바로가기:</span> → 주요 딜 수행 실적</a> <span class="ct">(<a href="mailto:name@koreainvestment.com">name@koreainvestment.com</a>, <a href="tel:02-3276-6012">02-3276-6012</a>)</span></p>
+  </footer>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const getJSON=async p=>{ try{ const r=await fetch(p,{cache:"no-store"}); return r.ok?r.json():null; }catch{ return null; } };
+const fmt=n=>n==null?"–":Number(n).toLocaleString("ko-KR");
+const CAP=new Set(["서울","인천","경기"]);
+const AH="https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do";
+const ym=s=>{ const [y,m]=s.split("-"); return `'${y.slice(2)}.${m}`; };
+const eok=v=>v==null?"–":(v/10000).toFixed(2)+"억";
+const sgn=(v,unit="")=>v==null?"–":(v>0?"▲ ":v<0?"▼ ":"– ")+Math.abs(v).toLocaleString("ko-KR")+unit;
+const mvc=v=>v==null?"flat":v>0?"up":v<0?"down":"flat";
+const pct=(a,b)=>a==null||!b?null:a/b*100;
+
+/* ── 스파크라인(daily-ratings와 같은 방식) ── */
+const SER={}, SW=240, SH=46, SP=3;
+function spark(vals, W=SW, H=SH, p=SP){
+  const v=vals.map(x=>x??0), mn=Math.min(...v), mx=Math.max(...v), rg=(mx-mn)||1;
+  const x=i=>p+i*(W-2*p)/Math.max(1,v.length-1), y=t=>H-p-(t-mn)/rg*(H-2*p);
+  const pts=v.map((t,i)=>`${x(i).toFixed(1)},${y(t).toFixed(1)}`).join(" ");
+  const lx=x(v.length-1), ly=y(v[v.length-1]);
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+    <polygon points="${p},${H} ${pts} ${lx},${H}" fill="var(--spark-fill)"/>
+    <polyline points="${pts}" fill="none" stroke="var(--spark)" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+    <circle cx="${lx}" cy="${ly}" r="2.6" fill="var(--spark)"/></svg>`;
+}
+function sparkBox(k, vals, months){
+  SER[k]={vals:vals.map(x=>x??0), months};
+  return `<div class="sparkbox" data-k="${k}" tabindex="0" role="img" aria-label="최근 ${vals.length}개월 추이, 최근 ${fmt(vals[vals.length-1])}호">${spark(vals)}<span class="spark-guide" hidden></span><span class="spark-dot" hidden></span><span class="spark-tip" hidden></span></div><div class="axis"><span>${ym(months[0])}</span><span>${ym(months[months.length-1])}</span></div>`;
+}
+function sparkAt(box,i){
+  const s=SER[box.dataset.k]; if(!s) return; const n=s.vals.length; i=Math.max(0,Math.min(n-1,i)); box.dataset.i=i;
+  const mn=Math.min(...s.vals), mx=Math.max(...s.vals), rg=(mx-mn)||1, w=box.clientWidth, h=box.querySelector("svg").clientHeight;
+  const px=(SP+i*(SW-2*SP)/Math.max(1,n-1))/SW*w, py=(SH-SP-(s.vals[i]-mn)/rg*(SH-2*SP))/SH*h;
+  const [g,dot,tip]=[".spark-guide",".spark-dot",".spark-tip"].map(c=>box.querySelector(c));
+  g.style.left=px+"px"; dot.style.left=px+"px"; dot.style.top=py+"px";
+  tip.textContent=`${ym(s.months[i])}  ${fmt(s.vals[i])}호`; g.hidden=dot.hidden=tip.hidden=false;
+  const tw=tip.offsetWidth/2; tip.style.left=Math.max(tw,Math.min(w-tw,px))+"px";
+}
+function sparkHide(b){ b.querySelectorAll(".spark-guide,.spark-dot,.spark-tip").forEach(e=>e.hidden=true); delete b.dataset.i; }
+function sparkIdx(b,cx){ const s=SER[b.dataset.k], r=b.getBoundingClientRect(); return Math.round(((cx-r.left)/r.width*SW-SP)/(SW-2*SP)*(s.vals.length-1)); }
+document.addEventListener("pointermove",e=>{ const b=e.target.closest&&e.target.closest(".sparkbox"); if(b) sparkAt(b,sparkIdx(b,e.clientX)); });
+document.addEventListener("pointerdown",e=>{ const b=e.target.closest&&e.target.closest(".sparkbox"); document.querySelectorAll(".sparkbox").forEach(x=>{ if(x!==b) sparkHide(x); }); if(b) sparkAt(b,sparkIdx(b,e.clientX)); });
+document.addEventListener("pointerout",e=>{ const b=e.target.closest&&e.target.closest(".sparkbox"); if(b&&e.pointerType==="mouse"&&!b.contains(e.relatedTarget)) sparkHide(b); });
+document.addEventListener("keydown",e=>{ const b=document.activeElement; if(!b||!b.classList||!b.classList.contains("sparkbox")) return;
+  const n=SER[b.dataset.k].vals.length, cur=b.dataset.i!=null?+b.dataset.i:n-1;
+  if(e.key==="ArrowLeft"){ sparkAt(b,cur-1); e.preventDefault(); } else if(e.key==="ArrowRight"){ sparkAt(b,cur+1); e.preventDefault(); } else if(e.key==="Escape") sparkHide(b); });
+function miniSpark(vals){
+  const W=140,H=26,p=2, v=vals.map(x=>x??0), mn=Math.min(...v), mx=Math.max(...v), rg=(mx-mn)||1;
+  const x=i=>p+i*(W-2*p)/Math.max(1,v.length-1), y=t=>H-p-(t-mn)/rg*(H-2*p);
+  const pts=v.map((t,i)=>`${x(i).toFixed(1)},${y(t).toFixed(1)}`).join(" ");
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polygon points="${p},${H} ${pts} ${x(v.length-1)},${H}" fill="var(--spark-fill)"/><polyline points="${pts}" fill="none" stroke="var(--spark)" stroke-width="1.3" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`;
+}
+
+/* ── 상태 ── */
+let SUB=null, UN=null, UNMAP=new Map(), UNSIDO=new Set();
+const stCls=s=>!s?"s0":s==="1순위 마감"?"s1":s==="순위 내 마감"?"s2":s==="접수 종료"?"s3":s.startsWith("미달")?"s4":"s0";
+const stKey=s=>!s?"진행":s.startsWith("미달")?"미달":(s==="접수 전"||s==="접수 중")?"진행":s;
+const stOrd=s=>({"1순위 마감":0,"순위 내 마감":1,"접수 종료":2,"미달":3,"진행":4})[stKey(s)] ?? 5;
+const unSido=s=>UNSIDO.has(s)?s:((s==="광주"||s==="전남")&&UNSIDO.has("전남광주")?"전남광주":s);
+const unOf=r=>{ const k=unSido(r.sido)+"|"+(r.sgg||""); return UNMAP.get(k)||null; };
+
+/* ── 요약 ── */
+function renderKPIs(){
+  const el=$("#kpis"); const cells=[];
+  if(UN&&UN.months&&UN.months.length){
+    const M=UN.months, n=M.length, S=UN.summary;
+    const cell=(title,key,sub)=>{ const v=S.nation[key], last=v[n-1], prev=v[n-2], yr=v[0];
+      const c=S.capital[key], l=S.local[key];
+      return `<div class="kpi"><div class="name"><b>${title}</b><span>${ym(M[n-1])} · 전국 · ${sub}</span></div>
+        <div class="val"><span class="num">${fmt(last)}<small>호</small></span><span class="chg ${mvc(last-prev)}">전월 대비 ${sgn(last-prev)}</span><span class="chg ${mvc(last-yr)}">1년 전 대비 ${sgn(last-yr)}</span></div>
+        ${sparkBox(key,v,M)}
+        <div class="split"><span>수도권 <b>${fmt(c[n-1])}</b> <span class="chg ${mvc(c[n-1]-c[n-2])}">${sgn(c[n-1]-c[n-2])}</span></span><span>지방 <b>${fmt(l[n-1])}</b> <span class="chg ${mvc(l[n-1]-l[n-2])}">${sgn(l[n-1]-l[n-2])}</span></span></div></div>`; };
+    cells.push(cell("미분양","total","민간 · 공공 합계"));
+    cells.push(cell("준공 후 미분양","done","공사완료 후"));
+  } else cells.push(`<div class="kpi"><div class="placeholder">미분양 통계를 불러오지 못했습니다. 다음 수집 때 다시 표시됩니다.</div></div>`);
+  if(SUB&&SUB.rows){
+    const cut=monthsAgo(3), rs=SUB.rows.filter(r=>r.kind==="민영"&&r.sale==="분양주택"&&r.notice>=cut&&r.status&&r.status!=="접수 전"&&r.status!=="접수 중");
+    const grp={"1순위 마감":0,"순위 내 마감":0,"접수 종료":0,"미달":0}; rs.forEach(r=>grp[stKey(r.status)]=(grp[stKey(r.status)]||0)+1);
+    const rate=a=>{ const s=a.reduce((x,r)=>x+(r.sup||0),0), q=a.reduce((x,r)=>x+(r.r1||0),0); return s?q/s:null; };
+    const cap=rs.filter(r=>CAP.has(r.sido)), loc=rs.filter(r=>!CAP.has(r.sido));
+    const all=rate(rs), N=rs.length||1, cols={"1순위 마감":"var(--g-a1)","순위 내 마감":"var(--g-a2)","접수 종료":"var(--g-a3)","미달":"var(--g-b)"};
+    cells.push(`<div class="kpi"><div class="name"><b>최근 3개월 청약</b><span>민영 분양 · 모집공고 ${ym(cut.slice(0,7))} 이후 · 접수 끝난 단지</span></div>
+      <div class="val"><span class="num">${rs.length}<small>개 단지</small></span><span class="chg flat">1순위 평균 ${all==null?"–":all.toFixed(1)+" : 1"}</span></div>
+      <div class="stack" role="img" aria-label="청약결과 분포">${Object.entries(grp).map(([k,v])=>v?`<span style="flex:${v};background:${cols[k]}" title="${k} ${v}개"></span>`:"").join("")}</div>
+      <div class="legend">${Object.entries(grp).map(([k,v])=>`<span><i style="background:${cols[k]}"></i>${k} ${v} (${Math.round(v/N*100)}%)</span>`).join("")}</div>
+      <div class="split"><span>수도권 1순위 <b>${rate(cap)==null?"–":rate(cap).toFixed(1)+" : 1"}</b> · ${cap.length}곳</span><span>지방 1순위 <b>${rate(loc)==null?"–":rate(loc).toFixed(1)+" : 1"}</b> · ${loc.length}곳</span></div></div>`);
+  }
+  el.innerHTML=cells.join("");
+  $("#sum-note").textContent=UN&&UN.months?`미분양은 국토교통부 ${ym(UN.months[UN.months.length-1])}월분(매월 말 공표), 청약은 청약홈 기준`:"";
+}
+function monthsAgo(n){ const d=new Date(); d.setMonth(d.getMonth()-n); return d.toISOString().slice(0,10); }
+
+/* ── 청약 표 ── */
+const ss={per:3,kind:"민영",sido:"all",res:"all",q:"",sort:"notice",dir:-1,open:new Set()};
+function subRows(){
+  if(!SUB) return [];
+  const cut=monthsAgo(ss.per), q=ss.q.toLowerCase();
+  let L=SUB.rows.filter(r=>r.notice>=cut);
+  if(ss.kind!=="all") L=L.filter(r=>r.kind===ss.kind);
+  if(ss.sido==="cap") L=L.filter(r=>CAP.has(r.sido)); else if(ss.sido==="loc") L=L.filter(r=>!CAP.has(r.sido)); else if(ss.sido!=="all") L=L.filter(r=>r.sido===ss.sido);
+  if(ss.res!=="all") L=L.filter(r=>stKey(r.status)===ss.res);
+  if(q) L=L.filter(r=>[r.name,r.builder,r.developer,r.sgg,r.sido,r.addr].join(" ").toLowerCase().includes(q));
+  const key={notice:r=>r.notice+r.pb, rg:r=>(r.sido||"")+(r.sgg||""), name:r=>r.name, builder:r=>r.builder||"", units:r=>r.sup??-1, p84:r=>r.p84??-1, ppy:r=>r.ppy??-1,
+    rate:r=>r.rate??-1, st:r=>stOrd(r.status), un:r=>{ const u=unOf(r); return u?u.t??-1:-1; }}[ss.sort];
+  return L.sort((a,b)=>{ const x=key(a), y=key(b); return (x<y?-1:x>y?1:0)*ss.dir; });
+}
+function rateHtml(r){ if(r.rate==null) return '<span class="dim">–</span>'; return `<span class="rate"><b>${r.rate>=100?r.rate.toFixed(0):r.rate.toFixed(2)}</b><i> : 1</i></span>`; }
+function renderSub(){
+  const L=subRows(), tb=$("#tbody-s");
+  $("#count-s").textContent=`${L.length}개 단지`;
+  if(!L.length){ tb.innerHTML=`<tr><td colspan="10" class="empty">${SUB?"조건에 맞는 단지가 없습니다. 기간이나 필터를 넓혀 보세요.":"청약 자료를 불러오지 못했습니다."}</td></tr>`; return; }
+  tb.innerHTML=L.map(r=>{ const u=unOf(r), open=ss.open.has(r.pb);
+    return `<tr class="row" data-pb="${r.pb}" tabindex="0" aria-expanded="${open}">
+      <td class="num">${r.notice}</td>
+      <td class="rg">${esc(r.sido)}<small>${esc(r.sgg||"")}</small></td>
+      <td class="nm"><span class="chev">›</span> ${esc(r.name)}${r.kind==="국민"?'<span class="kd pub">공공</span>':""}${r.sale!=="분양주택"?`<span class="kd">${esc(r.sale)}</span>`:""}<small>청약 ${esc(r.period)}${r.movein?` · 입주 ${esc(r.movein)}`:""}</small></td>
+      <td class="bd">${esc(shortCo(r.builder))}</td>
+      <td class="num">${fmt(r.sup)}<small class="dim"> (${fmt(r.units)})</small></td>
+      <td class="num">${eok(r.p84)}</td>
+      <td class="num">${fmt(r.ppy)}</td>
+      <td class="num">${rateHtml(r)}</td>
+      <td><span class="st ${stCls(r.status)}">${esc(r.status||"사업주체 문의")}</span></td>
+      <td class="num">${u?`${fmt(u.t)}<small class="dim"> (${fmt(u.d)})</small>`:'<span class="dim">–</span>'}</td></tr>${open?detailRow(r):""}`; }).join("");
+}
+function shortCo(s){ return String(s||"").replace(/\(주\)|㈜|주식회사|\(유\)/g,"").replace(/\s+/g," ").trim(); }
+function detailRow(r){
+  const T=r.types||[];
+  const rows=T.map(t=>`<tr><td>${esc(t.ty)}</td><td class="num">${t.area??"–"}</td><td class="num">${fmt(t.gen)}</td><td class="num">${fmt(t.spc)}</td><td class="num">${t.price==null?"–":fmt(t.price)}</td><td class="num">${fmt(t.ppy)}</td><td class="num">${fmt(t.sup)}</td><td class="num">${fmt(t.r1)}</td><td class="num">${t.rate==null?"–":t.rate.toFixed(2)}</td><td>${esc(t.result||"–")}</td><td class="num">${t.score?t.score.avg:"–"}</td></tr>`).join("");
+  const u=unOf(r);
+  return `<tr class="det"><td colspan="10"><div class="detail">
+    <dl class="meta">
+      <dt>공급위치</dt><dd>${esc(r.addr||"–")}</dd>
+      <dt>공급규모</dt><dd>${fmt(r.units)}세대 (일반공급 ${fmt(r.sup)})</dd>
+      <dt>시행사</dt><dd>${esc(r.developer||"–")}</dd>
+      <dt>시공사</dt><dd>${esc(r.builder||"–")}</dd>
+      <dt>청약 · 발표</dt><dd>${esc(r.period)} · 당첨자 ${esc(r.winner)}</dd>
+      <dt>계약 · 입주</dt><dd>${esc(r.contract||"–")} · 입주예정 ${esc(r.movein||"–")}</dd>
+      <dt>1 · 2순위 접수</dt><dd>${fmt(r.r1)}건 · ${fmt(r.r2)}건</dd>
+      <dt>시군구 미분양</dt><dd>${u?`${esc(u.sido)} ${esc(u.sgg)} ${fmt(u.t)}호 (준공 후 ${fmt(u.d)}호, ${ym(UN.months[UN.months.length-1])})`:"–"}</dd>
+      <dt>원문</dt><dd><a href="${AH}?houseManageNo=${r.hm}&pblancNo=${r.pb}" target="_blank" rel="noopener">청약홈 모집공고 주요정보 →</a></dd>
+    </dl>
+    <div class="sub-t"><table><thead><tr><th>주택형</th><th class="num">공급면적㎡</th><th class="num">일반</th><th class="num">특별</th><th class="num">최고가(만원)</th><th class="num">평당가</th><th class="num">일반공급*</th><th class="num">1순위 접수</th><th class="num">1순위 경쟁률</th><th>청약결과</th><th class="num">가점 평균</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="11" class="empty">주택형 정보가 없습니다.</td></tr>'}</tbody></table></div>
+  </div></td></tr>`;
+}
+document.querySelector("#tbody-s").addEventListener("click",e=>{ const tr=e.target.closest("tr.row"); if(!tr||e.target.closest("a")) return; toggle(tr.dataset.pb); });
+document.querySelector("#tbody-s").addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr.row")){ e.preventDefault(); toggle(e.target.dataset.pb); } });
+function toggle(pb){ ss.open.has(pb)?ss.open.delete(pb):ss.open.add(pb); renderSub(); const tr=document.querySelector(`tr.row[data-pb="${pb}"]`); if(tr) tr.focus({preventScroll:true}); }
+
+/* ── 미분양 표 ── */
+const us={lv:"sgg",sido:"all",nz:true,q:"",sort:"d",dir:-1};
+function unRows(){
+  if(!UN) return [];
+  const n=UN.months.length, q=us.q.toLowerCase();
+  let L=UN.regions.map(r=>({sido:r.sido,sgg:r.sgg,t:r.total[n-1],tm:r.total[n-1]!=null&&r.total[n-2]!=null?r.total[n-1]-r.total[n-2]:null,
+    ty:r.total[n-1]!=null&&r.total[0]!=null?r.total[n-1]-r.total[0]:null,d:r.done[n-1],dm:r.done[n-1]!=null&&r.done[n-2]!=null?r.done[n-1]-r.done[n-2]:null,
+    dr:pct(r.done[n-1],r.total[n-1]),series:r.total,dseries:r.done}));
+  L=us.lv==="sido"?L.filter(r=>r.sgg==="계"):L.filter(r=>r.sgg!=="계");
+  if(us.sido!=="all") L=L.filter(r=>r.sido===us.sido);
+  if(us.nz) L=L.filter(r=>(r.t||0)>0||(r.d||0)>0);
+  if(q) L=L.filter(r=>(r.sido+" "+r.sgg).toLowerCase().includes(q));
+  const k=us.sort; return L.sort((a,b)=>{ const x=k==="sido"||k==="sgg"?a[k]:(a[k]??-1e9), y=k==="sido"||k==="sgg"?b[k]:(b[k]??-1e9); return (x<y?-1:x>y?1:0)*us.dir; });
+}
+function renderUn(){
+  const L=unRows(), tb=$("#tbody-u");
+  $("#count-u").textContent=`${L.length}곳`;
+  if(!L.length){ tb.innerHTML=`<tr><td colspan="9" class="empty">${UN?"조건에 맞는 지역이 없습니다.":"미분양 통계를 불러오지 못했습니다."}</td></tr>`; return; }
+  const mx=Math.max(...L.map(r=>r.t||0),1);
+  tb.innerHTML=L.map(r=>`<tr>
+    <td>${esc(r.sido)}</td><td>${esc(r.sgg==="계"?"(시·도 합계)":r.sgg)}</td>
+    <td class="num amt"><span class="aw">${fmt(r.t)}<span class="bar"><i style="width:${((r.t||0)/mx*100).toFixed(1)}%"></i></span></span></td>
+    <td class="mv ${mvc(r.tm)}">${sgn(r.tm)}</td><td class="mv ${mvc(r.ty)}">${sgn(r.ty)}</td>
+    <td class="num"><b>${fmt(r.d)}</b></td><td class="mv ${mvc(r.dm)}">${sgn(r.dm)}</td>
+    <td class="num">${r.dr==null?"–":r.dr.toFixed(0)+"%"}</td>
+    <td class="spk">${miniSpark(r.series)}</td></tr>`).join("");
+}
+
+/* ── 정렬 · 필터 ── */
+function bindSort(id, st, render){
+  document.querySelector(id).addEventListener("click",e=>{ const th=e.target.closest("th[data-k]"); if(!th||!th.querySelector("button")) return;
+    const k=th.dataset.k; if(st.sort===k) st.dir*=-1; else { st.sort=k; st.dir=["name","builder","rg","sido","sgg"].includes(k)?1:-1; }
+    document.querySelectorAll(id+" th[data-k]").forEach(x=>x.setAttribute("aria-sort",x.dataset.k===st.sort?(st.dir>0?"ascending":"descending"):"none"));
+    render(); });
+}
+function bindSeg(id, fn){ document.querySelector(id).addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return;
+  document.querySelectorAll(id+" button").forEach(x=>x.setAttribute("aria-pressed",x===b)); fn(b.dataset.v); }); }
+bindSort("#thead-s", ss, renderSub); bindSort("#thead-u", us, renderUn);
+bindSeg("#seg-per", v=>{ ss.per=+v; renderSub(); });
+bindSeg("#seg-kind", v=>{ ss.kind=v; renderSub(); });
+bindSeg("#seg-lv", v=>{ us.lv=v; renderUn(); });
+$("#f-sido").addEventListener("change",e=>{ ss.sido=e.target.value; renderSub(); });
+$("#f-res").addEventListener("change",e=>{ ss.res=e.target.value; renderSub(); });
+$("#f-q").addEventListener("input",e=>{ ss.q=e.target.value.trim(); renderSub(); });
+$("#u-sido").addEventListener("change",e=>{ us.sido=e.target.value; renderUn(); });
+$("#u-nz").addEventListener("change",e=>{ us.nz=e.target.checked; renderUn(); });
+$("#u-q").addEventListener("input",e=>{ us.q=e.target.value.trim(); renderUn(); });
+
+/* ── 엑셀 ── */
+function loadXLSX(){ if(window.XLSX) return Promise.resolve();
+  return new Promise((ok,fail)=>{ const s=document.createElement("script"); s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"; s.onload=ok; s.onerror=fail; document.head.appendChild(s); }); }
+async function withBtn(btn, fn){ btn.disabled=true; const t=btn.lastChild.textContent; btn.lastChild.textContent="준비 중…";
+  try{ await loadXLSX(); fn(); } catch(e){ btn.lastChild.textContent="다운로드 실패"; setTimeout(()=>btn.lastChild.textContent=t,2000); btn.disabled=false; return; }
+  btn.lastChild.textContent=t; btn.disabled=false; }
+const stamp=()=>new Date().toISOString().slice(0,10).replace(/-/g,"");
+function numFmt(ws, rows, cols, z="#,##0"){ for(let i=1;i<=rows;i++) for(const c of cols){ const cell=ws[XLSX.utils.encode_cell({r:i,c})]; if(cell&&typeof cell.v==="number") cell.z=z; } }
+$("#dl-s").addEventListener("click",()=>withBtn($("#dl-s"),()=>{
+  const L=subRows();
+  const head=["모집공고일","시도","시군구","단지명","구분","분양/임대","공급위치","시행사","시공사","공급규모(세대)","일반공급(세대)","84㎡ 최고가(만원)","평당가(만원/3.3㎡)","1순위 접수","2순위 접수","1순위 경쟁률","청약결과","청약기간","당첨자발표","계약일","입주예정","시군구 미분양(호)","시군구 준공후 미분양(호)"];
+  const body=L.map(r=>{ const u=unOf(r); return [r.notice,r.sido,r.sgg,r.name,r.kind,r.sale,r.addr,r.developer,r.builder,r.units,r.sup,r.p84,r.ppy,r.r1,r.r2,r.rate,r.status,r.period,r.winner,r.contract,r.movein,u?u.t:null,u?u.d:null]; });
+  const ws=XLSX.utils.aoa_to_sheet([head,...body]); numFmt(ws,body.length,[9,10,11,12,13,14,21,22]); numFmt(ws,body.length,[15],"0.00");
+  ws["!cols"]=head.map((h,i)=>({wch:[3,6].includes(i)?30:i===7||i===8?22:12})); ws["!autofilter"]={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:body.length,c:head.length-1}})};
+  const h2=["모집공고일","시도","시군구","단지명","주택형","공급면적(㎡)","일반(모집공고)","특별","최고가(만원)","평당가(만원/3.3㎡)","일반공급(최종)","1순위 접수","2순위 접수","1순위 경쟁률","청약결과","가점 최저","가점 최고","가점 평균"];
+  const b2=[]; L.forEach(r=>(r.types||[]).forEach(t=>b2.push([r.notice,r.sido,r.sgg,r.name,t.ty,t.area,t.gen,t.spc,t.price,t.ppy,t.sup,t.r1,t.r2,t.rate,t.result,t.score?t.score.min:null,t.score?t.score.max:null,t.score?t.score.avg:null])));
+  const ws2=XLSX.utils.aoa_to_sheet([h2,...b2]); numFmt(ws2,b2.length,[6,7,8,9,10,11,12]); ws2["!cols"]=h2.map((h,i)=>({wch:i===3?30:12}));
+  const info=[["자료","아파트 분양시장 청약 · 미분양 현황 대시보드 (apt-watch.pages.dev)"],["출처","한국부동산원 청약홈 APT 분양정보 · 청약 접수 경쟁률"],["기준","모집공고 최근 "+ss.per+"개월 · 화면 필터 그대로"],["공급금액","모집공고 최고가 기준, 발코니 확장 · 옵션 제외"],["평당가","공급금액 ÷ (공급면적 ÷ 3.305785)"],["1순위 경쟁률","1순위 접수건수(해당+기타지역) ÷ 일반공급 세대"],["수집 시각",SUB.generated||""]];
+  const ws3=XLSX.utils.aoa_to_sheet(info); ws3["!cols"]=[{wch:14},{wch:80}];
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"단지별"); XLSX.utils.book_append_sheet(wb,ws2,"주택형별"); XLSX.utils.book_append_sheet(wb,ws3,"안내");
+  XLSX.writeFile(wb,`분양단지_청약결과_${stamp()}.xlsx`);
+}));
+$("#dl-u").addEventListener("click",()=>withBtn($("#dl-u"),()=>{
+  const L=unRows(), M=UN.months, n=M.length;
+  const head=["시도","시군구","미분양(호)","전월 대비","1년 전 대비","준공 후 미분양(호)","준공 후 전월 대비","준공 후 비중(%)",...M.map(m=>"미분양 "+m),...M.map(m=>"준공후 "+m)];
+  const body=L.map(r=>[r.sido,r.sgg==="계"?"(합계)":r.sgg,r.t,r.tm,r.ty,r.d,r.dm,r.dr==null?null:Math.round(r.dr*10)/10,...r.series,...r.dseries]);
+  const ws=XLSX.utils.aoa_to_sheet([head,...body]); numFmt(ws,body.length,[...Array(head.length).keys()].filter(i=>i>=2&&i!==7));
+  ws["!cols"]=head.map((h,i)=>({wch:i<2?12:11})); ws["!autofilter"]={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:body.length,c:head.length-1}})};
+  const info=[["자료","아파트 분양시장 청약 · 미분양 현황 대시보드 (apt-watch.pages.dev)"],["출처","국토교통부 국토교통 통계누리 미분양주택현황보고 — 시·군·구별 미분양현황, 공사완료후 미분양현황"],["기준월",M[n-1]],["비고","광주 · 전남은 통계누리 표기대로 '전남광주'"],["수집 시각",UN.generated||""]];
+  const ws2=XLSX.utils.aoa_to_sheet(info); ws2["!cols"]=[{wch:12},{wch:80}];
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"시군구별 미분양"); XLSX.utils.book_append_sheet(wb,ws2,"안내");
+  XLSX.writeFile(wb,`시군구별_미분양_${M[n-1].replace("-","")}.xlsx`);
+}));
+
+/* ── 시작 ── */
+(async()=>{
+  const [s,u,st]=await Promise.all([getJSON("data/subscriptions.json"),getJSON("data/unsold.json"),getJSON("data/status.json")]);
+  SUB=s; UN=u;
+  if(UN){ const n=UN.months.length; UN.regions.forEach(r=>{ UNSIDO.add(r.sido); UNMAP.set(r.sido+"|"+r.sgg,{sido:r.sido,sgg:r.sgg,t:r.total[n-1],d:r.done[n-1]}); });
+    const sidos=[...UNSIDO]; $("#u-sido").insertAdjacentHTML("beforeend",sidos.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(""));
+    $("#un-note").textContent=`${ym(UN.months[n-1])}월 기준 · 전월 · 1년 전(${ym(UN.months[0])})과 비교`; }
+  if(SUB){ const sd=[...new Set(SUB.rows.map(r=>r.sido))].sort((a,b)=>a.localeCompare(b,"ko")); $("#f-sido").insertAdjacentHTML("beforeend",sd.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("")); }
+  $("#updated").textContent=st&&st.generated?`최종 수집 ${st.generated} KST`:"수집 시각 정보 없음";
+  if(st&&st.sources){ $("#status").innerHTML=Object.entries(st.sources).map(([k,v])=>`<span class="src ${v.ok?"":"bad"}" title="${esc(v.error||"")}"><span class="dot"></span>${esc(k)}${v.ok?"":" 수집 실패(직전 값 표시)"}</span>`).join(""); }
+  renderKPIs(); renderSub(); renderUn();
+})();
+</script>
+</body>
+</html>

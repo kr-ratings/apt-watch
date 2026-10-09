@@ -1,0 +1,45 @@
+name: 수집 및 배포
+
+on:
+  schedule:
+    - cron: "10 22 * * 0-4"   # 평일 07:10 KST (일~목 22:10 UTC)
+  workflow_dispatch: {}       # Actions 탭에서 'Run workflow'로 즉시 실행
+  push:
+    branches: [main]
+    paths: ["collector/**", ".github/workflows/**"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apt-watch
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 청약홈 · 통계누리에서 수집
+        run: |
+          pip install -r requirements.txt
+          python collector/collect.py
+
+      - name: 수집 결과 커밋 (Cloudflare Pages가 이 커밋으로 자동 배포)
+        run: |
+          git config user.name "apt-watch-bot"
+          git config user.email "apt-watch-bot@users.noreply.github.com"
+          git add site/data cache
+          if git diff --cached --quiet; then
+            echo "변경 없음"
+          else
+            git commit -m "data: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST 갱신"
+            git pull --rebase --autostash origin main
+            git push
+          fi
