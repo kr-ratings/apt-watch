@@ -49,7 +49,7 @@ def sess():
     return s
 
 
-def req(s, method, url, tries=3, timeout=60, **kw):
+def req(s, method, url, tries=3, timeout=60, backoff=3, **kw):
     last = None
     for i in range(tries):
         try:
@@ -58,7 +58,8 @@ def req(s, method, url, tries=3, timeout=60, **kw):
             return r
         except Exception as e:  # noqa: BLE001
             last = e
-            time.sleep(3 * (i + 1))
+            if i < tries - 1:
+                time.sleep(backoff * (i + 1))
     raise last  # type: ignore[misc]
 
 
@@ -319,8 +320,13 @@ def collect_applyhome(s, status) -> None:
 
 # ───────────────────────── 미분양 ─────────────────────────
 def molit(s, fid, style, start, end):
-    s.get(f"{MOLIT}/portal/cate/statView.do?hRsId=32&hFormId={fid}", timeout=60)
-    r = req(s, "GET", f"{MOLIT}/portal/stat/data.do?formId={fid}&styleNum={style}&apprYn=Y&startDate={start}&endDate={end}", timeout=180)
+    # 통계누리는 해외(GitHub Actions) 접속이 가끔 연결 지연된다 → 넉넉히 기다렸다 다시 시도
+    try:
+        req(s, "GET", f"{MOLIT}/portal/cate/statView.do?hRsId=32&hFormId={fid}", tries=4, timeout=45, backoff=15)
+    except Exception as e:  # noqa: BLE001  (세션 준비용 페이지라 실패해도 데이터 요청은 해 본다)
+        log("통계누리 화면 열기 실패", e)
+    r = req(s, "GET", f"{MOLIT}/portal/stat/data.do?formId={fid}&styleNum={style}&apprYn=Y&startDate={start}&endDate={end}",
+            tries=4, timeout=180, backoff=20)
     j = r.json()
     if not j.get("result"):
         raise RuntimeError(f"통계누리 응답 오류 {fid}: {str(j)[:200]}")
