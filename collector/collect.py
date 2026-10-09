@@ -192,6 +192,26 @@ def ah_competition(s, hm, pb) -> dict:
     return {"types": list(by.values())}
 
 
+PROV = (r"(서울특별시|부산광역시|대구광역시|인천광역시|광주광역시|대전광역시|울산광역시|세종특별자치시|경기도|"
+        r"강원특별자치도|강원도|충청북도|충청남도|전북특별자치도|전라북도|전라남도|경상북도|경상남도|제주특별자치도|\S+통합특별시)")
+
+
+def sgg_of(addr: str | None) -> str | None:
+    """공급위치에서 시·군·구를 뽑는다. '김포 풍무역세권 B4블록 (경기도 김포시 …)'처럼 사업지명이 앞에 와도
+    괄호 안 주소를 찾아 쓰고, '화성특례시'는 통계누리 표기(화성시)로 맞춘다."""
+    if not addr:
+        return None
+    m = re.search(PROV + r"\s+(\S+?(?:시|군|구))(?=[\s),]|$)", addr)
+    if m:
+        if m.group(1).startswith("세종"):
+            return "세종시"
+        return re.sub(r"특례시$", "시", m.group(2))
+    tok = addr.split()
+    if tok and tok[0].startswith("세종"):
+        return "세종시"
+    return re.sub(r"특례시$", "시", tok[1]) if len(tok) >= 2 else None
+
+
 def summarize(base: dict, det: dict, cmp_: dict | None) -> dict:
     types = det.get("types") or []
     cm = {x["ty"]: x for x in (cmp_ or {}).get("types", [])}
@@ -229,13 +249,7 @@ def summarize(base: dict, det: dict, cmp_: dict | None) -> dict:
         for r in rows:
             r["rate"] = None
     t84 = [r for r in rows if r["ty"].startswith("084") and r.get("price")]
-    sido, sgg = base["sido"], None
-    if det.get("addr"):
-        tok = det["addr"].split()
-        if len(tok) >= 2:
-            sgg = tok[1]
-            if tok[0].startswith("세종"):
-                sgg = "세종시"
+    sido, sgg = base["sido"], sgg_of(det.get("addr"))
     return {
         "pb": base["pb"], "hm": base["hm"], "name": base["name"], "sido": sido, "sgg": sgg, "addr": det.get("addr"),
         "kind": base["kind"], "sale": base["sale"], "builder": base["builder"] or det.get("constructor"),
