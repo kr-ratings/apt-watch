@@ -1,10 +1,10 @@
-"""시 · 군 · 구 단위 입주 · 수요.
+"""단지 목록 기준(부동산지인 방식) 입주 · 수요 — 전국 · 시도 · 시군구 공통.
 
-국토부 준공 통계는 시 · 도까지만 공개되므로 시 · 군 · 구는 다음 자료로 집계한다.
 - 입주 실적: K-apt(공동주택관리정보시스템) '관리비공개의무단지 기본정보'(매주 게시)의 단지별 사용승인일 · 세대수.
   의무관리대상(300세대 이상, 150세대 이상 승강기 · 중앙난방 등)과 100세대 이상 가입 단지가 대상이라
   소규모 단지는 빠진다. 연립 · 다세대는 뺀다.
-- 입주 예정: 청약홈 입주예정 엑셀(supply.plans)의 단지 주소로 시 · 군 · 구를 나눈다.
+- 입주 예정: 청약홈 입주예정 엑셀(supply.plans, 향후 2년)의 분양 · 분양임대 단지(순수 임대 제외),
+  그 뒤 달은 청약홈 분양 공고의 입주예정월 · 공급세대수(ah_movein).
 - 수요: 행정안전부 주민등록인구(전체 시군구 현황, 연말 · 최근 달) × 0.5%.
 
 도(道)는 시 · 군 단위(일반구는 시로 합산), 특별 · 광역시는 구 · 군 단위로 묶는다.
@@ -64,8 +64,8 @@ def unit_from_addr(addr: str | None, short) -> tuple[str, str] | None:
     return unit_of(short(tok[0]), tok[1])
 
 
-def kapt_completions(s, short) -> tuple[dict, dict]:
-    """K-apt 단지 기본정보 → {(시도, 단위, 'YYYYMM'): 세대수}, 메타"""
+def kapt_completions(s, short) -> tuple[dict, dict, dict]:
+    """K-apt 단지 기본정보 → {(시도, 'YYYYMM'): 세대수}, {(시도, 단위, 'YYYYMM'): 세대수}, 메타"""
     page = req(s, "GET", KAPT + "/web/board/webReference/boardList.do", timeout=60).text
     tok = re.search(r'name="_csrf"\s+content="([^"]+)"', page)
     hdr = re.search(r'name="_csrf_header"\s+content="([^"]+)"', page)
@@ -104,7 +104,7 @@ def kapt_completions(s, short) -> tuple[dict, dict]:
     wb = openpyxl.load_workbook(io.BytesIO(r.content), read_only=True, data_only=True)
     ws = wb.worksheets[0]
     ws.reset_dimensions()          # 파일에 적힌 범위가 'A1'뿐이라 다시 잡아야 전체 행을 읽는다
-    head, out, n, used = None, {}, 0, 0
+    head, out, out_sd, n, used = None, {}, {}, 0, 0
     for row in ws.iter_rows(values_only=True):
         if head is None:
             cells = [str(c).strip() if c is not None else "" for c in row]
@@ -117,16 +117,19 @@ def kapt_completions(s, short) -> tuple[dict, dict]:
             continue
         d = re.sub(r"\D", "", str(g("사용승인일") or ""))[:6]
         hh = num(g("세대수"))
-        u = unit_of(short(str(g("시도") or "")), str(g("시군구") or ""))
-        if len(d) != 6 or not hh or not u:
+        sd = short(str(g("시도") or ""))
+        if len(d) != 6 or not hh or not sd:
             continue
-        k = (u[0], u[1], d)
-        out[k] = out.get(k, 0) + int(round(hh))
+        u = unit_of(sd, str(g("시군구") or ""))
+        sd = u[0] if u else sd                      # 군위군은 대구로
+        out_sd[(sd, d)] = out_sd.get((sd, d), 0) + int(round(hh))
+        if u:
+            out[(u[0], u[1], d)] = out.get((u[0], u[1], d), 0) + int(round(hh))
         used += 1
     wb.close()
     if not head or not out:
         raise RuntimeError(f"K-apt 단지 기본정보에서 읽은 단지가 없음(머리행 {'있음' if head else '없음'}, {n}행)")
-    return out, {"basis": basis, "complexes": used, "rows": n, "file": f["fileName"]}
+    return out_sd, out, {"basis": basis, "complexes": used, "rows": n, "file": f["fileName"]}
 
 
 def jumin_units(s, short, first_year: int) -> tuple[dict, dict, str | None]:
@@ -190,3 +193,89 @@ def jumin_units(s, short, first_year: int) -> tuple[dict, dict, str | None]:
             break
         time.sleep(1)
     return out, order, latest
+
+
+PROV_RE = re.compile(r"(서울특별시|부산광역시|대구광역시|인천광역시|광주광역시|대전광역시|울산광역시|세종특별자치시|경기도|"
+                     r"강원특별자치도|강원도|충청북도|충청남도|전북특별자치도|전라북도|전라남도|경상북도|경상남도|제주특별자치도|"
+                     r"\S+통합특별시)\s+(\S+)")
+SKIP_NOTICE = re.compile(r"취소분|보류지|잔여|무순위|임의공급|계약취소|재공급|추가모집|사전청약")
+
+
+def addr_unit(addr: str | None, short) -> tuple[str, str] | None:
+    """'김포 풍무역세권 B4블록 (경기도 김포시 …)'처럼 사업지명이 앞에 와도 주소 부분을 찾아 단위를 정한다."""
+    m = PROV_RE.search(addr or "")
+    return unit_of(short(m.group(1)), m.group(2)) if m else None
+
+
+def ah_movein(s, short, months: int = 30, max_fetch: int = 900) -> tuple[list[dict], dict]:
+    """청약홈 분양 공고(최근 months개월)의 입주예정월 · 공급세대수. 단지 상세는 cache/movein.json에 쌓아 둔다."""
+    import json as _json
+
+    from collect import AH, CACHE, ah_detail, cells
+
+    cache_f = CACHE / "movein.json"
+    cache = _json.loads(cache_f.read_text()) if cache_f.exists() else {}
+    ah_f = CACHE / "applyhome.json"
+    if ah_f.exists():                      # 청약 현황 수집에서 이미 받은 상세는 다시 받지 않는다
+        for pb, c in _json.loads(ah_f.read_text()).items():
+            d = c.get("det") or {}
+            if pb not in cache and d.get("movein"):
+                cache[pb] = {"m": d["movein"], "u": d.get("units") or sum((t.get("tot") or 0) for t in d.get("types") or []),
+                             "a": d.get("addr")}
+    now = now_kst()
+    rows, y, m = [], now.year, now.month
+    for _ in range((months + 5) // 6):
+        ey, em = y, m
+        by, bm = y, m - 5
+        while bm <= 0:
+            by, bm = by - 1, bm + 12
+        for page in range(1, 120):
+            r = req(s, "POST", AH + "/ai/aia/selectAPTLttotPblancListView.do",
+                    data={"beginPd": f"{by}{bm:02d}", "endPd": f"{ey}{em:02d}", "pageIndex": str(page)})
+            trs = re.findall(r'(?s)<tr data-pbno="(\d+)" data-hmno="(\d+)" data-honm="([^"]*)">(.*?)</tr>', r.text)
+            if not trs:
+                break
+            for pb, hm, nm, body in trs:
+                c = cells(body)
+                if len(c) >= 7:
+                    rows.append({"pb": pb, "hm": hm, "name": nm.strip(), "sido": c[0], "sale": c[2], "notice": c[6]})
+            if not re.search(rf"pageIndex={page + 1}\b", r.text):
+                break
+            time.sleep(0.3)
+        y, m = by, bm - 1
+        if m <= 0:
+            y, m = y - 1, m + 12
+    seen, lst = set(), []
+    for x in rows:
+        if x["pb"] in seen or SKIP_NOTICE.search(x["name"]) or "임대" in x["sale"]:
+            continue
+        seen.add(x["pb"]); lst.append(x)
+    fetched = 0
+    for x in lst:
+        if x["pb"] in cache or fetched >= max_fetch:
+            continue
+        try:
+            d = ah_detail(s, x["hm"], x["pb"])
+            cache[x["pb"]] = {"m": d.get("movein"), "u": d.get("units") or sum((t.get("tot") or 0) for t in d.get("types") or []),
+                              "a": d.get("addr")}
+            fetched += 1
+            time.sleep(0.3)
+        except Exception as e:  # noqa: BLE001
+            log("청약홈 공고 상세 실패", x["name"], e)
+    keep = {x["pb"] for x in lst}
+    cache = {k: v for k, v in cache.items() if k in keep}
+    CACHE.mkdir(exist_ok=True)
+    cache_f.write_text(_json.dumps(cache, ensure_ascii=False, separators=(",", ":")))
+    out = []
+    for x in lst:
+        c = cache.get(x["pb"])
+        if not c or not c.get("m") or not c.get("u"):
+            continue
+        ym = re.sub(r"\D", "", c["m"])[:6]
+        if len(ym) != 6:
+            continue
+        sd = short(x["sido"])
+        u = addr_unit(c.get("a"), short)
+        out.append({"name": x["name"], "sd": u[0] if u else sd, "unit": u[1] if u else None, "ym": ym, "n": int(c["u"])})
+    log("청약홈 분양 공고(입주예정월)", len(lst), "건, 새로 받은 상세", fetched)
+    return out, {"notices": len(lst), "fetched": fetched}

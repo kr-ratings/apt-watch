@@ -1,4 +1,12 @@
-"""아파트 입주(공급) · 수요 추이.
+"""아파트 입주(공급) · 수요 추이 — 부동산지인과 같은 '단지 목록 기준' 방식.
+
+전국 · 시도 · 시군구 모두 같은 단지 자료로 센다(시군구 합 = 시도).
+- 입주 실적: K-apt 단지별 사용승인일 · 세대수(sgg.kapt_completions). 국토부 준공 실적은 참고값(molit)으로만 남긴다.
+- 입주 예정: 청약홈 입주예정(향후 2년, 부동산원 · R114)의 분양 · 분양임대 단지. 순수 임대(청년안심주택 · 매입임대 등)는
+  지인처럼 뺀다. 그 뒤 달은 청약홈 분양 공고의 입주예정월 · 공급세대수(plan_ah).
+- 수요: 주민등록인구 × 0.5%.
+
+아래는 예전(국토부 기준) 설명으로, 국토부 참고값 계산에 그대로 쓰인다.
 
 - 입주 실적: 국토교통 통계누리 주택건설실적통계(준공) '주택유형별 주택건설 준공실적(월계)'(formId 5373)의
   아파트 사용검사 실적을 시·도별로 연도 합산한다(2011년~). 한 번에 60개월까지만 조회되므로 나눠 받는다.
@@ -93,7 +101,7 @@ def plans(s) -> tuple[dict, dict, dict]:
     r = req(s, "GET", AH + "/form/ai/" + urllib.parse.quote(m.group(1)), timeout=90)
     wb = openpyxl.load_workbook(io.BytesIO(r.content), read_only=True, data_only=True)
     ws = wb.worksheets[0]
-    out, n, yms, units = {}, 0, [], {}
+    out, n, yms, units, rent = {}, 0, [], {}, 0
     head = None
     for row in ws.iter_rows(values_only=True):
         if head is None:
@@ -107,15 +115,19 @@ def plans(s) -> tuple[dict, dict, dict]:
                 sd = short(str(rec["주소"]).split()[0])
             if not re.fullmatch(r"\d{6}", ym) or not sd or not cnt:
                 continue
+        yms.append(ym)
+        if str(rec.get("사업유형") or "").strip() == "임대":     # 지인 방식: 순수 임대는 입주 예정에서 뺀다
+            rent += cnt
+            continue
         out[(sd, ym)] = out.get((sd, ym), 0) + cnt
         u = unit_from_addr(str(rec.get("주소") or ""), short)
         if u:
             units[(u[0], u[1], ym)] = units.get((u[0], u[1], ym), 0) + cnt
-        yms.append(ym)
         n += 1
     if not out:
         raise RuntimeError("입주예정 엑셀에서 읽은 단지가 없음")
-    meta = {"basis": basis.group(1).strip() if basis else None, "from": min(yms), "to": max(yms), "complexes": n, "file": m.group(1)}
+    meta = {"basis": basis.group(1).strip() if basis else None, "from": min(yms), "to": max(yms), "complexes": n, "file": m.group(1),
+            "rent_excluded": rent}
     return out, meta, units
 
 
@@ -178,91 +190,123 @@ def population(s) -> tuple[dict, str]:
 
 
 def collect_supply(s, status) -> None:
+    from sgg import ah_movein, jumin_units, kapt_completions
     now = now_kst()
     try:
         pl, meta, pl_units = plans(s)
-        comp, comp_last = completions(s, now.strftime("%Y%m"))
         pop, pop_latest = population(s)
+        ka_sd, ka_u, kmeta = kapt_completions(s, short)
     except Exception as e:  # noqa: BLE001
         status["sources"]["입주 · 수요"] = {"ok": False, "error": str(e)[:300]}
         log("입주 · 수요 실패", e)
         return
-    plan_from = meta["from"]
-    last_year = int(meta["to"][:4])
+    try:                                   # 국토부 준공 실적: 참고값
+        comp, comp_last = completions(s, now.strftime("%Y%m"))
+    except Exception as e:  # noqa: BLE001
+        log("국토부 준공(참고) 실패", e)
+        comp, comp_last = {}, None
+    try:
+        ahm, ahmeta = ah_movein(s, short)
+    except Exception as e:  # noqa: BLE001
+        log("청약홈 분양 공고(입주예정월) 실패", e)
+        ahm, ahmeta = [], {"error": str(e)[:200]}
+    try:
+        jp, order, jlatest = jumin_units(s, short, FIRST_YEAR)
+    except Exception as e:  # noqa: BLE001
+        log("시군구 인구 실패", e)
+        jp, order, jlatest = None, {}, None
+    plan_from, plan_to = meta["from"], meta["to"]
+    ah_sd, ah_u = defaultdict(int), defaultdict(int)
+    for x in ahm:                          # 입주예정 엑셀이 끝난 뒤의 달만 분양 공고로 채운다
+        if x["ym"] <= plan_to or x["sd"] not in SIDO:
+            continue
+        ah_sd[(x["sd"], x["ym"])] += x["n"]
+        if x["unit"]:
+            ah_u[(x["sd"], x["unit"], x["ym"])] += x["n"]
+    last_year = int(plan_to[:4])
+    if ah_sd:
+        last_year = max(last_year, min(now.year + 3, max(int(ym[:4]) for (_, ym) in ah_sd)))
     years = list(range(FIRST_YEAR, last_year + 1))
+    py = int(plan_from[:4])
     regions = ["전국", "수도권", "지방"] + SIDO
 
     def members(rg):
         return SIDO if rg == "전국" else [x for x in SIDO if x in CAP] if rg == "수도권" else [x for x in SIDO if x not in CAP] if rg == "지방" else [rg]
 
+    def by_year(d, keyf, cut=None):
+        out = defaultdict(lambda: defaultdict(int))
+        for k, v in d.items():
+            ym = k[-1]
+            if cut and ym >= cut:
+                continue
+            out[keyf(k)][int(ym[:4])] += v
+        return out
+
+    A = by_year(ka_sd, lambda k: k[0], plan_from)
+    P = by_year(pl, lambda k: k[0])
+    Q = by_year(ah_sd, lambda k: k[0])
+    M = by_year(comp, lambda k: k[0], plan_from)
     res = {}
     for rg in regions:
         mem = members(rg)
-        act, pln, dem, pops = [], [], [], []
+        act, pln, pah, mol, dem, pops = [], [], [], [], [], []
         for y in years:
-            a = sum(v for (sd, ym), v in comp.items() if sd in mem and ym[:4] == str(y) and ym < plan_from)
-            p = sum(v for (sd, ym), v in pl.items() if sd in mem and ym[:4] == str(y))
-            has_a = any(sd in mem and ym[:4] == str(y) and ym < plan_from for (sd, ym) in comp)
-            act.append(a if has_a else None)
-            pln.append(p if p else None)
+            act.append(sum(A[sd].get(y, 0) for sd in mem) if y <= py else None)
+            pln.append(sum(P[sd].get(y, 0) for sd in mem) if y >= py and y <= int(plan_to[:4]) else None)
+            pah.append(sum(Q[sd].get(y, 0) for sd in mem) if y >= int(plan_to[:4]) else None)
+            mol.append(sum(M[sd].get(y, 0) for sd in mem) if comp and y <= py else None)
             if y < now.year:
                 pv = pop.get(("전국", y)) if rg == "전국" else sum(pop.get((sd, y), 0) for sd in mem) or None
             else:
                 pv = pop.get(("전국", "latest")) if rg == "전국" else sum(pop.get((sd, "latest"), 0) for sd in mem) or None
             pops.append(pv)
             dem.append(round(pv * DEMAND_RATE) if pv else None)
-        res[rg] = {"actual": act, "plan": pln, "pop": pops, "demand": dem}
-    partial = {}
-    if meta["to"][4:] != "12":
-        partial[str(last_year)] = int(meta["to"][4:])   # 마지막 해는 예정 자료가 이 달까지만 있음
-    out = {"generated": now.strftime("%Y-%m-%d %H:%M"), "years": years, "regions": regions, "data": res,
-           "actual_through": f"{comp_last[:4]}-{comp_last[4:]}" if comp_last else None,
-           "plan": {"basis": meta["basis"], "from": f"{plan_from[:4]}-{plan_from[4:]}", "to": f"{meta['to'][:4]}-{meta['to'][4:]}",
-                    "complexes": meta["complexes"]},
-           "pop_latest": pop_latest, "demand_rate": DEMAND_RATE, "partial": partial}
-    try:
-        out["sgg"], out["sgg_meta"] = collect_sgg(s, years, plan_from, pl_units, now)
-    except Exception as e:  # noqa: BLE001
-        log("시군구 입주 · 수요 실패(직전 값 유지)", e)
-        old = json.loads((DATA / "supply.json").read_text()) if (DATA / "supply.json").exists() else {}
-        if old.get("sgg"):
-            out["sgg"], out["sgg_meta"] = old["sgg"], dict(old.get("sgg_meta") or {}, stale=True)
-        status["sources"]["시군구 입주"] = {"ok": False, "error": str(e)[:300]}
+        res[rg] = {"actual": act, "plan": pln, "plan_ah": pah, "molit": mol, "pop": pops, "demand": dem}
+    out = {"generated": now.strftime("%Y-%m-%d %H:%M"), "method": "kapt", "years": years, "regions": regions, "data": res,
+           "actual_through": f"{plan_from[:4]}-{int(plan_from[4:]) - 1:02d}" if plan_from[4:] != "01" else f"{int(plan_from[:4]) - 1}-12",
+           "molit_through": f"{comp_last[:4]}-{comp_last[4:]}" if comp_last else None,
+           "kapt": {"basis": kmeta["basis"], "complexes": kmeta["complexes"]},
+           "plan": {"basis": meta["basis"], "from": f"{plan_from[:4]}-{plan_from[4:]}", "to": f"{plan_to[:4]}-{plan_to[4:]}",
+                    "complexes": meta["complexes"], "rent_excluded": meta.get("rent_excluded")},
+           "plan_ah": {"notices": ahmeta.get("notices"), "from": f"{int(plan_to[:4]) + (plan_to[4:] == '12')}-{(int(plan_to[4:]) % 12) + 1:02d}"},
+           "pop_latest": pop_latest, "demand_rate": DEMAND_RATE, "partial": {}}
+    if jp:
+        out["sgg"], out["sgg_meta"] = build_sgg(years, py, int(plan_to[:4]), plan_from, ka_u, pl_units, ah_u, jp, order, now)
+        out["sgg_meta"]["pop_latest"] = jlatest
+        status["sources"]["시군구 입주"] = {"ok": True, "units": sum(len(v) for v in out["sgg"].values())}
     else:
-        status["sources"]["시군구 입주"] = {"ok": True, "kapt": out["sgg_meta"]["kapt_basis"], "units": sum(len(v) for v in out["sgg"].values())}
+        status["sources"]["시군구 입주"] = {"ok": False, "error": "시군구 인구 수집 실패"}
     (DATA / "supply.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
-    status["sources"]["입주 · 수요"] = {"ok": True, "actual_through": out["actual_through"], "plan_basis": meta["basis"], "pop": pop_latest}
-    log("입주 · 수요 완료", out["actual_through"], meta, pop_latest)
+    status["sources"]["입주 · 수요"] = {"ok": True, "kapt": kmeta["basis"], "plan_basis": meta["basis"], "pop": pop_latest,
+                                     "notices": ahmeta.get("notices")}
+    log("입주 · 수요 완료", kmeta, meta, ahmeta, pop_latest)
 
 
-def collect_sgg(s, years: list[int], plan_from: str, pl_units: dict, now) -> tuple[dict, dict]:
-    """시도별 시 · 군 · 구 목록과 연도별 실적(K-apt) · 예정(청약홈) · 인구 · 수요"""
-    from sgg import jumin_units, kapt_completions
-    kc, kmeta = kapt_completions(s, short)
-    jp, order, jlatest = jumin_units(s, short, FIRST_YEAR)
-    idx_a, idx_p = defaultdict(lambda: defaultdict(int)), defaultdict(lambda: defaultdict(int))
-    for (sd, u, ym), v in kc.items():
+def build_sgg(years, py, pty, plan_from, ka_u, pl_units, ah_u, jp, order, now) -> tuple[dict, dict]:
+    """시도별 시 · 군 · 구 목록과 연도별 실적(K-apt) · 예정(청약홈 입주예정 · 분양 공고) · 인구 · 수요"""
+    idx_a, idx_p, idx_q = defaultdict(lambda: defaultdict(int)), defaultdict(lambda: defaultdict(int)), defaultdict(lambda: defaultdict(int))
+    for (sd, u, ym), v in ka_u.items():
         if ym < plan_from and ym[:4] >= str(FIRST_YEAR):
             idx_a[(sd, u)][int(ym[:4])] += v
     for (sd, u, ym), v in pl_units.items():
         idx_p[(sd, u)][int(ym[:4])] += v
+    for (sd, u, ym), v in ah_u.items():
+        idx_q[(sd, u)][int(ym[:4])] += v
     units = {(sd, u) for (sd, u, _) in jp}
-    miss = sorted({k for k in list(idx_a) + list(idx_p) if k not in units})
+    miss = sorted({k for k in list(idx_a) + list(idx_p) + list(idx_q) if k not in units})
     if miss:
         log("인구 자료에 없는 시군구(제외)", miss[:30])
-    py = int(plan_from[:4])
     res = defaultdict(list)
     for sd, u in sorted(units, key=lambda k: (order.get(k, 99999), k[1])):
-        act, pln, pops, dem = [], [], [], []
+        act, pln, pah, pops, dem = [], [], [], [], []
         for y in years:
             act.append(idx_a[(sd, u)].get(y, 0) if y <= py else None)
-            pln.append(idx_p[(sd, u)].get(y, 0) if y >= py else None)
+            pln.append(idx_p[(sd, u)].get(y, 0) if py <= y <= pty else None)
+            pah.append(idx_q[(sd, u)].get(y, 0) if y >= pty else None)
             pv = jp.get((sd, u, y)) if y < now.year else jp.get((sd, u, "latest"))
             pops.append(pv)
             dem.append(round(pv * DEMAND_RATE) if pv else None)
         if not any(pops):
             continue
-        res[sd].append({"name": u, "actual": act, "plan": pln, "pop": pops, "demand": dem})
-    meta = {"kapt_basis": kmeta["basis"], "kapt_complexes": kmeta["complexes"], "pop_latest": jlatest, "dropped": [f"{a} {b}" for a, b in miss]}
-    log("시군구 입주 · 수요 완료", kmeta, jlatest, sum(len(v) for v in res.values()))
-    return dict(res), meta
+        res[sd].append({"name": u, "actual": act, "plan": pln, "plan_ah": pah, "pop": pops, "demand": dem})
+    return dict(res), {"dropped": [f"{a} {b}" for a, b in miss]}

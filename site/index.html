@@ -225,6 +225,8 @@ footer .ct{white-space:nowrap}
 .sup-tip .r + .r{margin-top:3px}
 .sup-tip .r span:nth-child(2){color:var(--muted)}
 .sup-tip .r b{font-weight:600}
+.sup-tip .r.ref{margin-top:5px;font-size:.72rem}
+.sup-tip .r.ref b{font-weight:500;color:var(--muted)}
 .sup-tip .r svg{display:block}
 .sup-tip .sum{margin-top:7px;padding-top:7px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px}
 .sup-tip .sum span{color:var(--muted)}
@@ -397,7 +399,7 @@ footer .ct{white-space:nowrap}
     <summary>데이터 기준과 읽는 법</summary>
     <p>청약 자료는 한국부동산원 청약홈의 APT 분양정보입니다. 모집공고일 기준 최근 6개월 공고를 받아 단지별 공급위치 · 세대수 · 주택형별 공급금액(최고가) · 시행사 · 시공사 · 입주예정월과, 주택형 · 순위 · 지역별 접수건수 및 청약결과를 정리했습니다. 무순위 · 잔여세대, 오피스텔 · 도시형생활주택은 포함하지 않습니다.</p>
     <p>세대수는 일반공급 세대(특별공급 미달분 이월 반영)이며, 괄호 안은 공급규모(특별공급 포함)입니다. 1순위 경쟁률은 해당지역 · 기타지역을 합친 1순위 접수건수를 일반공급 세대로 나눈 값입니다. 청약결과는 주택형별 결과를 합쳐 모든 주택형이 1순위에서 마감되면 '1순위 마감', 2순위까지 모두 마감되면 '순위 내 마감', 1 · 2순위 접수 합계가 공급 세대보다 적은 주택형이 있으면 '미달(부족 세대 수)', 그 밖에 순위 내 마감 기준(예비입주자 포함)을 못 채운 경우 '접수 종료'로 표시합니다. 실제 계약률은 공개 자료가 없어 담지 않았습니다.</p>
-    <p>입주 · 수요 추이의 입주 실적은 국토교통부 통계누리 '주택유형별 주택건설 준공실적'의 아파트 사용검사 실적(월별)을 연도별로 더한 값이고, 입주 예정은 청약홈 '입주(예정)정보'에 공개된 한국부동산원 · 부동산R114의 단지별 입주예정 세대수(30세대 이상, 향후 2년)입니다. 입주 예정 자료가 시작하는 달부터는 실적 대신 예정을 더해 같은 달을 두 번 세지 않으며, 이 때문에 올해 막대는 실적과 예정이 함께 쌓입니다. 수요는 권역별(시 · 도) 주민등록인구 기반 추정치로, 행정안전부 주민등록인구(연말 기준)에 0.5%를 곱한 값입니다. 업계에서 흔히 쓰는 적정 수요 추정 방식이며, 올해 이후는 최근 달 인구를 그대로 적용해 그래프에 점선으로 표시합니다. 실적은 아파트 전체(임대 포함) 사용검사 기준이고 예정은 30세대 이상 단지 기준이라 두 자료의 범위가 완전히 같지는 않습니다. 국토교통부 준공 통계는 시 · 도까지만 공개되어, 시 · 군 · 구를 고르면 입주 실적은 K-apt(공동주택관리정보시스템) 관리비공개의무단지 기본정보의 단지별 사용승인일 · 세대수로 집계합니다. 의무관리 대상이 아닌 소규모 단지와 연립 · 다세대는 빠지므로 시 · 도 합계와 조금 다를 수 있습니다. 도는 시 · 군 단위(일반구는 시로 합산)이고, 인천은 행정체제 개편 전후를 이어 보도록 중구 · 동구를 '제물포구·영종구', 서구를 '서해구·검단구'로 묶었습니다.</p>
+    <p>입주 · 수요 추이는 부동산지인과 같은 단지 목록 기준으로 셉니다. 전국 · 시도 · 시군구 모두 같은 단지 자료를 쓰므로 시군구를 더하면 시도가 됩니다. 입주 실적은 K-apt(공동주택관리정보시스템)가 매주 공개하는 관리비공개의무단지 기본정보의 단지별 사용승인일 · 세대수를 연도별로 더한 값이고, 연립 · 다세대와 의무관리 대상이 아닌 소규모 단지는 빠집니다. 입주 예정은 청약홈 '입주(예정)정보'의 한국부동산원 · 부동산R114 단지별 입주예정 세대수(향후 2년) 가운데 분양 · 분양임대 단지만 더하고, 청년안심주택 · 매입임대 같은 순수 임대는 지인처럼 뺍니다. 그 뒤 달은 청약홈 분양 공고의 입주예정월 · 공급세대수로 채우는데, 정비사업은 일반분양분만 잡히고 아직 분양하지 않은 단지는 빠지므로 실제보다 적게 보입니다. 입주 예정 자료가 시작하는 달부터는 실적 대신 예정을 더해 같은 달을 두 번 세지 않으며, 이 때문에 올해 막대는 실적과 예정이 함께 쌓입니다. 수요는 주민등록인구(연말 기준)에 0.5%를 곱한 값이고, 올해 이후는 최근 달 인구를 그대로 적용해 점선으로 표시합니다. 국토교통부 준공 실적은 시도 단위로만 공개되어 참고값으로 툴팁과 엑셀에 함께 둡니다. 도는 시 · 군 단위(일반구는 시로 합산)이고, 인천은 행정체제 개편 전후를 이어 보도록 중구 · 동구를 '제물포구·영종구', 서구를 '서해구·검단구'로 묶었습니다.</p>
     <p>미분양 자료는 국토교통부 통계누리 '미분양주택현황보고'의 시 · 군 · 구별 미분양현황과 공사완료후 미분양현황입니다. 매월 말 전월분이 공표되며, 광주 · 전남은 통계누리 표기대로 '전남광주'로 묶어 보여줍니다. 표의 '시군구 미분양'은 해당 단지 소재 시 · 군 · 구의 최근월 미분양(괄호는 준공 후)입니다.</p>
   </details>
 
@@ -649,12 +651,14 @@ const supData=()=>{ if(sp.sg){ const u=supUnits(sp.rg).find(x=>x.name===sp.sg); 
 const supLabel=()=>sp.sg?(sp.sg.startsWith("광주 ")?sp.sg:`${sp.rg} ${sp.sg}`):sp.rg;
 function supRows(){
   const D=supData(), Y=SUP.years, i0=Math.max(0,Y.indexOf(sp.y0));
-  const py=+SUP.plan.from.slice(0,4), pf=+SUP.plan.from.slice(5);
-  return Y.slice(i0).map((y,k)=>{ const i=i0+k, d=D.demand[i], kind=y<py?"past":(y===py&&pf>1)?"mix":"plan";
-    const a=kind==="plan"?null:D.actual[i], p=kind==="past"?null:(D.plan[i]||0), t=(a==null&&p==null)?null:(a||0)+(p||0);
-    const pm=kind==="plan"?(SUP.partial[String(y)]||null):null, dp=d==null?null:(pm?Math.round(d*pm/12):d);
-    const dw=d==null?null:kind==="mix"?Math.round(d*(13-pf)/12):kind==="plan"?dp:null;   // 입주 예정 기간에 해당하는 수요
-    return {y,kind,a,p,t,d,dp,dw,gap:t==null||dp==null?null:t-dp,pop:D.pop[i],pm}; });
+  const py=+SUP.plan.from.slice(0,4), pf=+SUP.plan.from.slice(5), ty=+SUP.plan.to.slice(0,4), tm=+SUP.plan.to.slice(5);
+  return Y.slice(i0).map((y,k)=>{ const i=i0+k, d=D.demand[i], kind=y<py?"past":(y===py&&pf>1)?"mix":y>ty?"ah":"plan";
+    const a=(kind==="past"||kind==="mix")?D.actual[i]:null;
+    const pr=kind==="past"||y>ty?null:((D.plan||[])[i]||0), pq=kind==="past"||y<ty?null:(((D.plan_ah||[])[i])||0);
+    const p=kind==="past"?null:(pr||0)+(pq||0), t=(a==null&&p==null)?null:(a||0)+(p||0);
+    const m0=y===py?pf:1, m1=y===ty?tm:12, dw=d==null||y<py||y>ty?null:Math.round(d*(m1-m0+1)/12);   // 향후 2년(부동산원 · R114 기간) 수요
+    const mol=(D.molit||[])[i];
+    return {y,kind,a,pr,pq,p,t,d,dp:d,dw,gap:t==null||d==null?null:t-d,pop:D.pop[i],mol:mol==null?null:mol}; });
 }
 function niceStep(v){ const raw=v/4, e=Math.pow(10,Math.floor(Math.log10(raw||1))), f=raw/e; return [1,2,2.5,5,10].find(k=>f<=k)*e; }
 function topRound(x,y,w,h,r){ r=Math.min(r,w/2,h); if(h<=0) return ""; return `M${x},${y+h}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h}Z`; }
@@ -679,9 +683,9 @@ function renderSup(animate){
     const ah=r.a?ih*r.a/top:0, ph=r.p?ih*r.p/top:0, gap=(ah&&ph)?2:0;
     if(ah) g+=`<path class="bar" style="animation-delay:${d}" d="${ph?`M${x},${T+ih}V${T+ih-ah}H${x+bw}V${T+ih}Z`:topRound(x,T+ih-ah,bw,ah,4)}" fill="var(--sup-a)"/>`;
     if(ph) g+=`<path class="bar" style="animation-delay:${d}" d="${topRound(x,T+ih-ah-gap-ph,bw,ph,4)}" fill="url(#hatch)"/>`;
-    if(showCap&&r.t!=null&&(r.t||r.kind!=="past")){ let ly=T+ih-ah-gap-ph-7; const my=r.d==null?null:y(r.d); if(my!=null&&my>ly-17&&my<ly+9) ly=Math.min(ly,my-11); caps.push(`<text class="cap ${r.kind==="plan"?"pl":""}" x="${cx(i).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle">${man(r.t)}</text>`); }
-    if(i%every===0||i===n-1){ g+=`<text class="yr ${r.kind==="plan"?"pl":""}" x="${cx(i).toFixed(1)}" y="${T+ih+18}" text-anchor="middle">${narrow?"'"+String(r.y).slice(2):r.y}</text>`;
-      const sub=r.kind==="mix"?"실적 + 예정":r.kind==="plan"?(r.pm?`~${r.pm}월 예정`:"예정"):"";
+    if(showCap&&r.t!=null&&(r.t||r.kind!=="past")){ let ly=T+ih-ah-gap-ph-7; const my=r.d==null?null:y(r.d); if(my!=null&&my>ly-17&&my<ly+9) ly=Math.min(ly,my-11); caps.push(`<text class="cap ${r.kind==="plan"||r.kind==="ah"?"pl":""}" x="${cx(i).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle">${man(r.t)}</text>`); }
+    if((n-1-i)%every===0){ g+=`<text class="yr ${r.kind==="plan"||r.kind==="ah"?"pl":""}" x="${cx(i).toFixed(1)}" y="${T+ih+18}" text-anchor="middle">${narrow?"'"+String(r.y).slice(2):r.y}</text>`;
+      const sub=r.kind==="mix"?"실적 + 예정":r.kind==="plan"?"예정":r.kind==="ah"?"분양 공고":"";
       if(sub&&!narrow) g+=`<text class="sub" x="${cx(i).toFixed(1)}" y="${T+ih+33}" text-anchor="middle">${sub}</text>`; }
   });
   const nowY=new Date().getFullYear();
@@ -701,12 +705,14 @@ function renderSup(animate){
   box.innerHTML=g; box.classList.toggle("anim",!!animate);
   const tip=box.querySelector(".sup-tip"), sc=()=>box.clientWidth/W;
   const swA=`<svg width="10" height="10"><rect width="10" height="10" rx="2.5" fill="var(--sup-a)"/></svg>`, swP=`<svg width="10" height="10"><rect width="10" height="10" rx="2.5" fill="url(#hatch)"/></svg>`, swD=`<svg width="14" height="10"><line x1="1" y1="5" x2="13" y2="5" stroke="var(--sup-d)" stroke-width="2" stroke-linecap="round"/></svg>`;
-  const pf=PLAN_FROM_M();
+  const pf=PLAN_FROM_M(), ty=+SUP.plan.to.slice(0,4), tm=+SUP.plan.to.slice(5), mo=(a,b)=>a===1&&b===12?"":` ${a}~${b}월`;
   const show=i=>{ const r=R[i]; box.querySelectorAll(".hl").forEach(h=>h.classList.toggle("on",+h.dataset.i===i));
     const rows=[];
-    if(r.kind!=="plan") rows.push(`<div class="r">${swA}<span>입주 실적${r.kind==="mix"?` (1~${pf-1}월)`:""}</span><b>${r.a==null?"–":fmt(r.a)}</b></div>`);
-    if(r.kind!=="past") rows.push(`<div class="r">${swP}<span>입주 예정${r.kind==="mix"?` (${pf}~12월)`:r.pm?` (1~${r.pm}월)`:""}</span><b>${fmt(r.p)}</b></div>`);
-    rows.push(`<div class="r">${swD}<span>수요${r.pm?` (${r.pm}개월분)`:""}</span><b>${fmt(r.dp)}</b></div>`);
+    if(r.kind==="past"||r.kind==="mix") rows.push(`<div class="r">${swA}<span>입주 실적${r.kind==="mix"?` 1~${pf-1}월`:""}</span><b>${r.a==null?"–":fmt(r.a)}</b></div>`);
+    if(r.pr!=null) rows.push(`<div class="r">${swP}<span>입주 예정${mo(r.kind==="mix"?pf:1,r.y===ty?tm:12)} · R114</span><b>${fmt(r.pr)}</b></div>`);
+    if(r.pq!=null) rows.push(`<div class="r">${swP}<span>입주 예정${r.y===ty?mo(tm+1,12):""} · 분양 공고</span><b>${fmt(r.pq)}</b></div>`);
+    rows.push(`<div class="r">${swD}<span>수요</span><b>${fmt(r.dp)}</b></div>`);
+    if(r.mol!=null&&!sp.sg&&(r.kind==="past"||r.kind==="mix")) rows.push(`<div class="r ref"><span></span><span>참고 · 국토부 준공</span><b>${fmt(r.mol)}</b></div>`);
     const sum=r.gap==null?"":`<div class="sum"><span>${r.gap>=0?"공급 초과":"공급 부족"}</span><b class="${r.gap>=0?"over":"short"}">${r.gap>=0?"+":"−"}${fmt(Math.abs(r.gap))}</b></div>`;
     tip.innerHTML=`<div class="t">${r.y}년<small>${esc(supLabel())} · 인구 ${r.pop?(r.pop/10000).toLocaleString("ko-KR",{maximumFractionDigits:1})+"만":"–"}</small></div>${rows.join("")}${sum}`;
     tip.hidden=false; const s=sc(), bx=cx(i)*s, tw=tip.offsetWidth, th=tip.offsetHeight;
@@ -719,19 +725,18 @@ function renderSup(animate){
   // 요약 숫자
   const past=R.filter(r=>r.kind==="past"&&r.a!=null&&r.d!=null), fut=R.filter(r=>r.kind!=="past");
   const avg=(a,k)=>a.length?a.reduce((x,r)=>x+(r[k]||0),0)/a.length:null;
-  const fs=fut.reduce((x,r)=>x+(r.p||0),0), fd=fut.reduce((x,r)=>x+(r.dw||0),0), gap=fs-fd;
+  const fs=fut.reduce((x,r)=>x+(r.pr||0),0), fd=fut.reduce((x,r)=>x+(r.dw||0),0), gap=fs-fd;
   const range=past.length?`${past[0].y}~${past[past.length-1].y}`:"";
   const big=v=>{ const m=man(v); return m.endsWith("만")?`${m.slice(0,-1)}<small>만</small>`:m; };
   $("#sup-stats").innerHTML=`
-    <div><span class="k">연평균 입주 실적</span><span class="v">${big(avg(past,"t"))}</span><span class="s">${range} · ${sp.sg?"K-apt 사용승인":"국토교통부 준공"}</span></div>
+    <div><span class="k">연평균 입주 실적</span><span class="v">${big(avg(past,"t"))}</span><span class="s">${range} · K-apt 단지 사용승인</span></div>
     <div><span class="k">연평균 수요</span><span class="v">${big(avg(past,"d"))}</span><span class="s">${range} · ${sp.sg?"시군구":"권역별"} 주민등록인구 기반</span></div>
-    <div><span class="k">향후 입주 예정</span><span class="v">${fut.length?big(fs):"–"}</span><span class="s">${SUP.plan.from.replace("-",".")}~${SUP.plan.to.replace("-",".")} · 부동산원 · R114</span></div>
+    <div><span class="k">향후 입주 예정</span><span class="v">${fut.length?big(fs):"–"}</span><span class="s">${SUP.plan.from.replace("-",".")}~${SUP.plan.to.replace("-",".")} · 부동산원 · R114(임대 제외)</span></div>
     <div><span class="k">같은 기간 수요 대비</span><span class="v">${fut.length?(gap>=0?"+":"−")+big(Math.abs(gap)):"–"}${fut.length?`<span class="tag ${gap>=0?"over":"short"}">${gap>=0?"공급 초과":"공급 부족"}</span>`:""}</span><span class="s">같은 기간 수요 ${man(fd)}</span></div>`;
 }
 function supNote(){
-  if(!SUP) return; const M=SUP.sgg_meta||{};
-  const act=sp.sg?`입주 실적 K-apt 단지 사용승인일 기준(${M.kapt_basis||""} 자료, 소규모 단지 제외)`:`입주 실적 국토교통부(~${SUP.actual_through.replace("-",".")})`;
-  $("#sup-note").textContent=`${act} · 입주 예정 한국부동산원 · 부동산R114(${SUP.plan.basis} 기준) · 인구 행정안전부(${((sp.sg?M.pop_latest:SUP.pop_latest)||"").replace("-",".")})`;
+  if(!SUP) return; const K=SUP.kapt||{}, A=SUP.plan_ah||{}, pop=(sp.sg?(SUP.sgg_meta||{}).pop_latest:SUP.pop_latest)||SUP.pop_latest||"";
+  $("#sup-note").textContent=`단지 기준(부동산지인 방식) · 실적 K-apt 사용승인(~${(SUP.actual_through||"").replace("-",".")}, ${K.basis||""} 자료) · 예정 부동산원 · R114(${SUP.plan.basis} 기준, 임대 제외)${A.from?` + 청약홈 분양 공고(${A.from.replace("-",".")}~)`:""} · 인구 행정안전부(${pop.replace("-",".")})`;
 }
 function initSup(){
   if(!SUP){ renderSup(); return; }
@@ -753,20 +758,29 @@ function initSup(){
 $("#dl-sup").addEventListener("click",()=>withBtn($("#dl-sup"),()=>{
   const wb=XLSX.utils.book_new(), Y=SUP.years;
   const py=+SUP.plan.from.slice(0,4), pf=+SUP.plan.from.slice(5);
-  const head=["연도","입주 실적(호)","입주 예정(세대)","입주 합계","인구(명)","수요(인구×0.5%, 해당 기간)","과부족"];
-  const body=D=>Y.map((y,i)=>{ const kind=y<py?"past":(y===py&&pf>1)?"mix":"plan", a=kind==="plan"?null:D.actual[i], p=kind==="past"?null:(D.plan[i]||0), t=(a==null&&p==null)?null:(a||0)+(p||0);
-      const pm=kind==="plan"?SUP.partial[String(y)]:null, dp=D.demand[i]==null?null:(pm?Math.round(D.demand[i]*pm/12):D.demand[i]);
-      const lb=kind==="mix"?`${y} (실적 1~${pf-1}월 + 예정 ${pf}~12월)`:kind==="plan"?`${y} (예정${pm?` 1~${pm}월`:""})`:String(y);
-      return [lb,a,p,t,D.pop[i],dp,t==null||dp==null?null:t-dp]; });
-  const sheet=D=>{ const b=body(D); const ws=XLSX.utils.aoa_to_sheet([head,...b]); numFmt(ws,b.length,[1,2,3,4,5,6]); ws["!cols"]=head.map(()=>({wch:14})); return ws; };
+  const ty=+SUP.plan.to.slice(0,4), tm=+SUP.plan.to.slice(5);
+  const head=["연도","입주 실적(K-apt 사용승인, 세대)","입주 예정(부동산원·R114, 임대 제외)","입주 예정(청약홈 분양 공고)","입주 합계","인구(명)","수요(인구×0.5%)","과부족","참고: 국토부 준공 실적(호)"];
+  const body=D=>Y.map((y,i)=>{ const kind=y<py?"past":(y===py&&pf>1)?"mix":y>ty?"ah":"plan";
+      const a=(kind==="past"||kind==="mix")?D.actual[i]:null, pr=kind==="past"||y>ty?null:((D.plan||[])[i]||0), pq=kind==="past"||y<ty?null:(((D.plan_ah||[])[i])||0);
+      const t=(a==null&&pr==null&&pq==null)?null:(a||0)+(pr||0)+(pq||0), d=D.demand[i], mol=(D.molit||[])[i];
+      const lb=kind==="mix"?`${y} (실적 1~${pf-1}월 + 예정 ${pf}~12월)`:kind==="plan"?(y===ty&&tm<12?`${y} (예정: 1~${tm}월 R114, ${tm+1}~12월 분양 공고)`:`${y} (예정)`):kind==="ah"?`${y} (분양 공고 기준)`:String(y);
+      return [lb,a,pr,pq,t,D.pop[i],d,t==null||d==null?null:t-d,mol==null?null:mol]; });
+  const sheet=D=>{ const b=body(D); const ws=XLSX.utils.aoa_to_sheet([head,...b]); numFmt(ws,b.length,[1,2,3,4,5,6,7,8]); ws["!cols"]=head.map((_,i)=>({wch:i===0?34:16})); return ws; };
   const nm=x=>x.replace(/[\\/?*\[\]:]/g," ").slice(0,31);
   if(sp.sg&&supUnits(sp.rg).some(u=>u.name===sp.sg)) XLSX.utils.book_append_sheet(wb,sheet(supData()),nm(supLabel()));
   XLSX.utils.book_append_sheet(wb,sheet(SUP.data[sp.rg]),nm(sp.rg));
   SUP.regions.filter(r=>r!==sp.rg).forEach(r=>XLSX.utils.book_append_sheet(wb,sheet(SUP.data[r]),nm(r)));
   const U=supUnits(sp.rg);
   if(U.length){ const h2=["시 · 군 · 구",...head], rows=[]; U.forEach(u=>body(u).forEach(r=>rows.push([u.name,...r])));
-    const ws=XLSX.utils.aoa_to_sheet([h2,...rows]); numFmt(ws,rows.length,[2,3,4,5,6,7]); ws["!cols"]=h2.map((_,i)=>({wch:i<2?16:14})); XLSX.utils.book_append_sheet(wb,ws,nm(sp.rg+" 시군구")); }
-  const info=[["자료","아파트 분양시장 청약 · 미분양 현황 대시보드 (apt-watch.pages.dev) — 입주 · 수요 추이"],["입주 실적","국토교통부 통계누리 주택유형별 주택건설 준공실적(아파트 사용검사), "+SUP.actual_through+"까지"],["입주 예정","청약홈 입주(예정)정보 — 한국부동산원 · 부동산R114, "+SUP.plan.basis+" 기준, "+SUP.plan.from+" ~ "+SUP.plan.to+" ("+SUP.plan.complexes+"개 단지)"],["겹침 처리","입주 예정이 시작하는 달부터는 실적 대신 예정을 합산"],["수요","권역별 주민등록인구 기반 — 행정안전부 주민등록인구(연말, 올해 이후는 "+SUP.pop_latest+") × 0.5%"],["시 · 군 · 구","국토부 준공 통계는 시도까지만 공개되어 시 · 군 · 구 입주 실적은 K-apt 관리비공개의무단지 기본정보("+((SUP.sgg_meta||{}).kapt_basis||"")+")의 사용승인일 · 세대수로 집계(연립 · 다세대, 의무관리 대상이 아닌 소규모 단지 제외). 입주 예정은 청약홈 자료를 주소로 나눔"],["비고","광주 · 전남은 '전남광주'로 합산. 도는 시 · 군 단위(일반구는 시로 합산), 인천 중구 · 동구는 '제물포구·영종구', 서구는 '서해구·검단구'로 묶음"]];
+    const ws=XLSX.utils.aoa_to_sheet([h2,...rows]); numFmt(ws,rows.length,[2,3,4,5,6,7,8,9]); ws["!cols"]=h2.map((_,i)=>({wch:i===1?34:16})); XLSX.utils.book_append_sheet(wb,ws,nm(sp.rg+" 시군구")); }
+  const info=[["자료","아파트 분양시장 청약 · 미분양 현황 대시보드 (apt-watch.pages.dev) — 입주 · 수요 추이"],
+    ["집계 방식","부동산지인과 같은 단지 목록 기준. 전국 · 시도 · 시군구 모두 같은 단지 자료로 셈(시군구 합 = 시도)"],
+    ["입주 실적","K-apt 관리비공개의무단지 기본정보("+((SUP.kapt||{}).basis||"")+")의 단지별 사용승인일 · 세대수, "+SUP.actual_through+"까지. 연립 · 다세대와 의무관리 대상이 아닌 소규모 단지는 빠짐"],
+    ["입주 예정","청약홈 입주예정(한국부동산원 · 부동산R114, "+SUP.plan.basis+" 기준, "+SUP.plan.from+" ~ "+SUP.plan.to+")의 분양 · 분양임대 단지. 순수 임대(청년안심주택 · 매입임대 등)는 제외"],
+    ["분양 공고","그 뒤 달("+((SUP.plan_ah||{}).from||"")+"~)은 청약홈 분양 공고의 입주예정월 · 공급세대수. 정비사업은 일반분양분만 잡히고, 아직 분양하지 않은 단지는 빠짐"],
+    ["수요","주민등록인구(연말, 올해 이후는 "+SUP.pop_latest+") × 0.5%"],
+    ["참고","국토교통부 준공 실적(주택유형별 준공실적, 아파트 사용검사)은 시도 시트 마지막 열에 참고로 둠"],
+    ["비고","광주 · 전남은 '전남광주'로 합산. 도는 시 · 군 단위(일반구는 시로 합산), 인천 중구 · 동구는 '제물포구·영종구', 서구는 '서해구·검단구'로 묶음"]];
   const wi=XLSX.utils.aoa_to_sheet(info); wi["!cols"]=[{wch:12},{wch:90}]; XLSX.utils.book_append_sheet(wb,wi,"안내");
   XLSX.writeFile(wb,`아파트_입주_수요_${supLabel().replace(/\s+/g,"")}_${stamp()}.xlsx`);
 }));
