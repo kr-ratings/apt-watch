@@ -1,10 +1,16 @@
 {
- "generated": "2026-10-09 19:14",
+ "generated": "2026-10-10 20:30",
  "sources": {
   "통계누리": {
    "ok": true,
    "latest": "2026-08",
    "regions": 249
+  },
+  "입주 · 수요": {
+   "ok": true,
+   "actual_through": "2026-08",
+   "plan_basis": "2026년 6월 말",
+   "pop": "2026-09"
   },
   "청약홈": {
    "ok": true,
