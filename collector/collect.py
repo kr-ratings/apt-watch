@@ -401,9 +401,12 @@ def main():
     st_f = DATA / "status.json"
     status = {"generated": now_kst().strftime("%Y-%m-%d %H:%M"), "sources": {}}
     s = sess()
-    only = sys.argv[1:] or ["unsold", "applyhome"]
+    only = sys.argv[1:] or ["unsold", "supply", "applyhome"]
     if "unsold" in only:
         collect_unsold(s, status)
+    if "supply" in only:
+        from supply import collect_supply
+        collect_supply(s, status)
     if "applyhome" in only:
         collect_applyhome(s, status)
     old = json.loads(st_f.read_text()) if st_f.exists() else {"sources": {}}
