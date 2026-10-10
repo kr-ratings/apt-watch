@@ -1,10 +1,15 @@
 {
- "generated": "2026-10-10 20:30",
+ "generated": "2026-10-10 21:32",
  "sources": {
   "통계누리": {
    "ok": true,
    "latest": "2026-08",
    "regions": 249
+  },
+  "시군구 입주": {
+   "ok": true,
+   "kapt": "2026.10.09",
+   "units": 228
   },
   "입주 · 수요": {
    "ok": true,
@@ -16,7 +21,7 @@
    "ok": true,
    "rows": 148,
    "fails": 0,
-   "fetched": 11
+   "fetched": 9
   }
  }
 }
