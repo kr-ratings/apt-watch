@@ -628,8 +628,8 @@ function renderSup(){
     if(r.p){ const base=r.a||0, h=ih*r.p/top; g+=`<rect x="${(x+.5).toFixed(1)}" y="${y(base+r.p).toFixed(1)}" width="${(w-1).toFixed(1)}" height="${(h-.5).toFixed(1)}" rx="2" fill="var(--seg3)" stroke="var(--seg2)" stroke-width="1" stroke-dasharray="3 2"/>`; }
     if(showBL&&r.t){ const yy=y(r.t), hh=T+ih-yy, inside=hh>26, dy=r.d!=null?y(r.d):-99;
       // 막대 가운데에 값 표시(참고 화면과 같은 배치). 수요선과 겹치면 막대 윗부분으로 옮김
-      let ly=inside?yy+hh/2+4:yy-5; if(inside&&Math.abs(ly-4-dy)<14) ly=(dy>yy+hh/2)?Math.max(yy+14,dy-10):Math.min(T+ih-4,dy+18);
-      const onDark=inside&&!(r.p&&ly<y(r.a||0)+2); g+=`<text class="bl" x="${cx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" fill="${onDark&&r.a?"#fff":"var(--fg)"}">${man(r.t)}</text>`; }
+      let ly=inside?yy+hh/2+4:yy-5; if(inside&&r.a&&r.p){ const ph=ih*r.p/top; ly=ph>18?yy+ph/2+4:yy-5; } if(inside&&Math.abs(ly-4-dy)<14) ly=(dy>yy+hh/2)?Math.max(yy+14,dy-10):Math.min(T+ih-4,dy+18);
+      const onDark=inside&&!r.p; g+=`<text class="bl" x="${cx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" fill="${onDark&&r.a?"#fff":"var(--fg)"}">${man(r.t)}</text>`; }
     g+=`<text class="yr ${r.a==null?"pl":""}" x="${cx.toFixed(1)}" y="${H-B+16}" text-anchor="middle">${narrow?"'"+String(r.y).slice(2):r.y}</text>`;
     if(r.part||(r.a!=null&&r.p!=null)) g+=`<text class="note" x="${cx.toFixed(1)}" y="${H-B+29}" text-anchor="middle">${r.part?"상반기":"실적+예정"}</text>`;
     if(r.d!=null) pts.push([cx,y(r.d),r.d]);
