@@ -11,11 +11,12 @@
 | `site/index.html` | 화면 전체(HTML · CSS · JS 한 파일) |
 | `site/data/subscriptions.json` | 단지별 청약 자료(주택형별 공급금액 · 경쟁률 포함) |
 | `site/data/unsold.json` | 시·군·구별 미분양 · 준공 후 미분양 최근 13개월 |
-| `site/data/supply.json` | 시·도별 아파트 입주(실적 · 예정) · 수요(인구×0.5%) 연도별 |
+| `site/data/supply.json` | 시·도별 아파트 입주(실적 · 예정) · 수요(인구×0.5%) 연도별, `sgg`에 시·군·구별 같은 값 |
 | `site/data/status.json` | 마지막 수집 시각과 출처별 성공 여부 |
 | `cache/applyhome.json` | 청약홈 단지별 원자료 캐시(이미 받은 상세 · 확정된 경쟁률은 다시 받지 않음) |
 | `collector/collect.py` | 수집기(청약 · 미분양) |
 | `collector/supply.py` | 입주 · 수요 수집기 |
+| `collector/sgg.py` | 시·군·구 입주 · 수요: K-apt 관리비공개의무단지 기본정보(사용승인일 · 세대수, 매주 게시) · 청약홈 입주예정 주소 · 행안부 전체 시군구 인구 |
 | `.github/workflows/update.yml` | 평일 07:10 KST 자동 실행 |
 
 ## 갱신 방식

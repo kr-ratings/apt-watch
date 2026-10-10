@@ -6,6 +6,7 @@
   시·도별 · 연도별로 합산한다. 예정 자료가 시작하는 달부터는 실적 대신 예정을 쓴다(같은 달을 두 번 세지 않도록).
 - 수요: 행정안전부 주민등록인구(연말 기준) × 0.5%. 올해 이후는 가장 최근 달 인구를 쓴다.
 - 광주 · 전남은 2026년 통합(전남광주통합특별시) 이후 표기에 맞춰 과거 연도까지 '전남광주'로 합친다.
+- 시 · 군 · 구 단위는 sgg.py(K-apt 단지 사용승인 · 청약홈 예정 주소 · 시군구 인구)로 따로 집계한다.
 """
 from __future__ import annotations
 
@@ -81,8 +82,9 @@ def completions(s, end_ym: str) -> tuple[dict, str | None]:
     return out, last
 
 
-def plans(s) -> tuple[dict, dict]:
-    """{(시도, 'YYYYMM'): 입주예정 세대수}, 메타(기준 시점 · 기간)"""
+def plans(s) -> tuple[dict, dict, dict]:
+    """{(시도, 'YYYYMM'): 입주예정 세대수}, 메타(기준 시점 · 기간), {(시도, 시군구 단위, 'YYYYMM'): 세대수}"""
+    from sgg import unit_from_addr
     page = req(s, "GET", AH + "/ai/aia/selectAPTMvnPrearngeHsHldcoList.do").text
     m = re.search(r'data-file="([^"]+\.xlsx)"', page)
     if not m:
@@ -91,7 +93,7 @@ def plans(s) -> tuple[dict, dict]:
     r = req(s, "GET", AH + "/form/ai/" + urllib.parse.quote(m.group(1)), timeout=90)
     wb = openpyxl.load_workbook(io.BytesIO(r.content), read_only=True, data_only=True)
     ws = wb.worksheets[0]
-    out, n, yms = {}, 0, []
+    out, n, yms, units = {}, 0, [], {}
     head = None
     for row in ws.iter_rows(values_only=True):
         if head is None:
@@ -106,12 +108,15 @@ def plans(s) -> tuple[dict, dict]:
             if not re.fullmatch(r"\d{6}", ym) or not sd or not cnt:
                 continue
         out[(sd, ym)] = out.get((sd, ym), 0) + cnt
+        u = unit_from_addr(str(rec.get("주소") or ""), short)
+        if u:
+            units[(u[0], u[1], ym)] = units.get((u[0], u[1], ym), 0) + cnt
         yms.append(ym)
         n += 1
     if not out:
         raise RuntimeError("입주예정 엑셀에서 읽은 단지가 없음")
     meta = {"basis": basis.group(1).strip() if basis else None, "from": min(yms), "to": max(yms), "complexes": n, "file": m.group(1)}
-    return out, meta
+    return out, meta, units
 
 
 def population(s) -> tuple[dict, str]:
@@ -175,7 +180,7 @@ def population(s) -> tuple[dict, str]:
 def collect_supply(s, status) -> None:
     now = now_kst()
     try:
-        pl, meta = plans(s)
+        pl, meta, pl_units = plans(s)
         comp, comp_last = completions(s, now.strftime("%Y%m"))
         pop, pop_latest = population(s)
     except Exception as e:  # noqa: BLE001
@@ -215,6 +220,49 @@ def collect_supply(s, status) -> None:
            "plan": {"basis": meta["basis"], "from": f"{plan_from[:4]}-{plan_from[4:]}", "to": f"{meta['to'][:4]}-{meta['to'][4:]}",
                     "complexes": meta["complexes"]},
            "pop_latest": pop_latest, "demand_rate": DEMAND_RATE, "partial": partial}
+    try:
+        out["sgg"], out["sgg_meta"] = collect_sgg(s, years, plan_from, pl_units, now)
+    except Exception as e:  # noqa: BLE001
+        log("시군구 입주 · 수요 실패(직전 값 유지)", e)
+        old = json.loads((DATA / "supply.json").read_text()) if (DATA / "supply.json").exists() else {}
+        if old.get("sgg"):
+            out["sgg"], out["sgg_meta"] = old["sgg"], dict(old.get("sgg_meta") or {}, stale=True)
+        status["sources"]["시군구 입주"] = {"ok": False, "error": str(e)[:300]}
+    else:
+        status["sources"]["시군구 입주"] = {"ok": True, "kapt": out["sgg_meta"]["kapt_basis"], "units": sum(len(v) for v in out["sgg"].values())}
     (DATA / "supply.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
     status["sources"]["입주 · 수요"] = {"ok": True, "actual_through": out["actual_through"], "plan_basis": meta["basis"], "pop": pop_latest}
     log("입주 · 수요 완료", out["actual_through"], meta, pop_latest)
+
+
+def collect_sgg(s, years: list[int], plan_from: str, pl_units: dict, now) -> tuple[dict, dict]:
+    """시도별 시 · 군 · 구 목록과 연도별 실적(K-apt) · 예정(청약홈) · 인구 · 수요"""
+    from sgg import jumin_units, kapt_completions
+    kc, kmeta = kapt_completions(s, short)
+    jp, order, jlatest = jumin_units(s, short, FIRST_YEAR)
+    idx_a, idx_p = defaultdict(lambda: defaultdict(int)), defaultdict(lambda: defaultdict(int))
+    for (sd, u, ym), v in kc.items():
+        if ym < plan_from and ym[:4] >= str(FIRST_YEAR):
+            idx_a[(sd, u)][int(ym[:4])] += v
+    for (sd, u, ym), v in pl_units.items():
+        idx_p[(sd, u)][int(ym[:4])] += v
+    units = {(sd, u) for (sd, u, _) in jp}
+    miss = sorted({k for k in list(idx_a) + list(idx_p) if k not in units})
+    if miss:
+        log("인구 자료에 없는 시군구(제외)", miss[:30])
+    py = int(plan_from[:4])
+    res = defaultdict(list)
+    for sd, u in sorted(units, key=lambda k: (order.get(k, 99999), k[1])):
+        act, pln, pops, dem = [], [], [], []
+        for y in years:
+            act.append(idx_a[(sd, u)].get(y, 0) if y <= py else None)
+            pln.append(idx_p[(sd, u)].get(y, 0) if y >= py else None)
+            pv = jp.get((sd, u, y)) if y < now.year else jp.get((sd, u, "latest"))
+            pops.append(pv)
+            dem.append(round(pv * DEMAND_RATE) if pv else None)
+        if not any(pops):
+            continue
+        res[sd].append({"name": u, "actual": act, "plan": pln, "pop": pops, "demand": dem})
+    meta = {"kapt_basis": kmeta["basis"], "kapt_complexes": kmeta["complexes"], "pop_latest": jlatest, "dropped": [f"{a} {b}" for a, b in miss]}
+    log("시군구 입주 · 수요 완료", kmeta, jlatest, sum(len(v) for v in res.values()))
+    return dict(res), meta
