@@ -22,6 +22,7 @@
   --g-a1:#1f7a4d; --g-a2:#4c7a1f; --g-a3:#a26a00; --g-b:#b3401f;
   --ok:#1f7a4d; --bad:#b3401f; --pf:#7a3fa8; --pf-bg:#f3ebfa;
   --seg1:#2747a8; --seg2:#5f78c4; --seg3:#9aabdc; --seg4:#cdd6ee;
+  --sup-a:#3354c4; --sup-p:#d5ddf6; --sup-ph:#3354c4; --sup-d:#d4682a; --sup-zone:rgba(51,84,196,.045); --tip-shadow:rgba(27,34,48,.14);
   --f-sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
   color-scheme:light;
@@ -33,7 +34,8 @@
   --spark:#8ea8ff; --spark-fill:rgba(142,168,255,.14);
   --g-a1:#5fd19a; --g-a2:#a6d16a; --g-a3:#f0bb4a; --g-b:#ff8a63;
   --ok:#5fd19a; --bad:#ff8a63; --pf:#d2a6ff; --pf-bg:#2c2140;
-  --seg1:#8ea8ff; --seg2:#6680cc; --seg3:#46599a; --seg4:#2e3a5e; color-scheme:dark}}
+  --seg1:#8ea8ff; --seg2:#6680cc; --seg3:#46599a; --seg4:#2e3a5e;
+  --sup-a:#5f7be0; --sup-p:#26325a; --sup-ph:#8ea8ff; --sup-d:#dc7334; --sup-zone:rgba(142,168,255,.06); --tip-shadow:rgba(0,0,0,.5); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#11151d; --surface:#181e29; --line:#2a3242; --fg:#e6e9ef; --muted:#97a0b2;
   --accent:#8ea8ff; --accent-soft:#1f2a45;
@@ -41,7 +43,8 @@
   --spark:#8ea8ff; --spark-fill:rgba(142,168,255,.14);
   --g-a1:#5fd19a; --g-a2:#a6d16a; --g-a3:#f0bb4a; --g-b:#ff8a63;
   --ok:#5fd19a; --bad:#ff8a63; --pf:#d2a6ff; --pf-bg:#2c2140;
-  --seg1:#8ea8ff; --seg2:#6680cc; --seg3:#46599a; --seg4:#2e3a5e; color-scheme:dark}
+  --seg1:#8ea8ff; --seg2:#6680cc; --seg3:#46599a; --seg4:#2e3a5e;
+  --sup-a:#5f7be0; --sup-p:#26325a; --sup-ph:#8ea8ff; --sup-d:#dc7334; --sup-zone:rgba(142,168,255,.06); --tip-shadow:rgba(0,0,0,.5); color-scheme:dark}
 
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-sans);font-size:14px;line-height:1.5}
@@ -175,34 +178,65 @@ footer a:hover{text-decoration:underline}
 footer .ct{white-space:nowrap}
 
 /* 입주 · 수요 추이 */
-.chart-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px 12px;display:flex;flex-direction:column;gap:10px}
+.chart-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px 10px;display:flex;flex-direction:column;gap:14px}
 .chart-top{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
-.chart-top .legend{margin-left:auto;font-family:var(--f-sans);font-size:.76rem}
-.legend .ln{width:14px;height:2px;border-radius:1px;display:inline-block;background:var(--up)}
-.legend .pl{background:var(--seg3);outline:1px dashed var(--seg2);outline-offset:-1px}
-.sup-sum{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:.8rem;color:var(--muted)}
-.sup-sum b{font-family:var(--f-mono);font-weight:500;color:var(--fg);font-variant-numeric:tabular-nums}
-.sup-sum .chg{font-size:.8rem;font-family:var(--f-sans);font-weight:600}
+.sup-legend{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.78rem;color:var(--muted);align-items:center}
+.sup-legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.sup-legend svg{display:block}
+.sup-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.sup-stats > div{padding:12px 16px 12px 0;display:flex;flex-direction:column;gap:2px;min-width:0}
+.sup-stats > div + div{padding-left:16px;border-left:1px solid var(--line)}
+.sup-stats .k{font-size:.74rem;color:var(--muted)}
+.sup-stats .v{font-size:1.45rem;font-weight:600;letter-spacing:-.01em;line-height:1.25}
+.sup-stats .v small{font-size:.85rem;font-weight:500;color:var(--muted);margin-left:2px}
+.sup-stats .s{font-size:.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sup-stats .tag{display:inline-block;font-size:.7rem;font-weight:600;padding:0 6px;border-radius:999px;margin-left:6px;vertical-align:3px;border:1px solid currentColor}
+.sup-stats .tag.short{color:var(--sup-d)} .sup-stats .tag.over{color:var(--sup-a)}
 .sup-chart{position:relative;width:100%;min-width:0}
 .sup-chart svg{display:block;width:100%;height:auto;overflow:visible}
-.sup-chart text{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.sup-chart text{font-family:var(--f-sans);font-variant-numeric:tabular-nums}
 .sup-chart .ax{font-size:11px;fill:var(--muted)}
-.sup-chart .yr{font-size:11.5px;fill:var(--fg)}
+.sup-chart .yr{font-size:12px;font-weight:500;fill:var(--fg)}
 .sup-chart .yr.pl{fill:var(--muted)}
-.sup-chart .note{font-size:10px;fill:var(--muted)}
-.sup-chart .grid{stroke:var(--line);stroke-width:1}
-.sup-chart .bl{font-size:11px;font-weight:500}
-.sup-chart .dl{font-size:10.5px;font-weight:500;fill:var(--up)}
-.sup-chart .hit{fill:transparent;cursor:crosshair}
-.sup-chart .hit:hover,.sup-chart .hit.on{fill:var(--accent-soft);opacity:.55}
-.sup-tip{position:absolute;pointer-events:none;background:var(--fg);color:var(--bg);font-size:.74rem;line-height:1.5;padding:7px 9px;border-radius:6px;white-space:nowrap;font-variant-numeric:tabular-nums;transform:translate(-50%,-100%);z-index:3}
-.sup-tip b{font-family:var(--f-mono);font-weight:500}
-.sup-tbl{overflow-x:auto;border-top:1px solid var(--line);padding-top:6px}
-.sup-tbl table{font-size:.76rem;width:auto;min-width:100%}
-.sup-tbl th,.sup-tbl td{padding:4px 8px;border-bottom:0;text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
-.sup-tbl th{position:static;font-family:var(--f-sans);font-size:.72rem}
-.sup-tbl th:first-child,.sup-tbl td:first-child{text-align:left;font-family:var(--f-sans);color:var(--muted);position:sticky;left:0;background:var(--surface);padding-left:0}
-.sup-tbl td.pos{color:var(--down)} .sup-tbl td.neg{color:var(--up)}
+.sup-chart .sub{font-size:10.5px;fill:var(--muted)}
+.sup-chart .grid{stroke:var(--line);stroke-width:1;shape-rendering:crispEdges}
+.sup-chart .base{stroke:var(--muted);stroke-opacity:.45;stroke-width:1;shape-rendering:crispEdges}
+.sup-chart .cap{font-size:11.5px;font-weight:600;fill:var(--fg);paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
+.sup-chart .cap.pl{fill:var(--muted)}
+.sup-chart .zone-t{font-size:10.5px;font-weight:600;fill:var(--muted);letter-spacing:.02em}
+.sup-chart .end-k{font-size:10.5px;fill:var(--muted)}
+.sup-chart .end-v{font-size:12px;font-weight:600;fill:var(--fg)}
+.sup-chart .dfut{stroke-dasharray:4 4}
+.sup-chart.anim .dfut,.sup-chart.anim .dmk{opacity:0;animation:supFade .35s .8s ease-out forwards}
+@keyframes supFade{to{opacity:1}}
+.sup-chart .bar{transform-box:fill-box;transform-origin:50% 100%}
+.sup-chart.anim .bar{animation:supGrow .55s cubic-bezier(.2,.75,.25,1) both}
+@keyframes supGrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.sup-chart.anim .dline{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:supDraw .7s .25s ease-out forwards}
+@keyframes supDraw{to{stroke-dashoffset:0}}
+.sup-chart .hit{fill:transparent;cursor:default}
+.sup-chart .hl{fill:var(--fg);opacity:0;transition:opacity .12s}
+.sup-chart .hl.on{opacity:.04}
+.sup-tip{position:absolute;pointer-events:none;background:var(--surface);color:var(--fg);border:1px solid var(--line);box-shadow:0 8px 24px var(--tip-shadow);font-size:.78rem;line-height:1.45;padding:10px 12px;border-radius:8px;white-space:nowrap;font-variant-numeric:tabular-nums;z-index:3;min-width:210px}
+.sup-tip .t{font-weight:600;margin-bottom:6px}
+.sup-tip .t small{font-weight:400;color:var(--muted);margin-left:4px}
+.sup-tip .r{display:grid;grid-template-columns:14px 1fr auto;gap:8px;align-items:center}
+.sup-tip .r + .r{margin-top:3px}
+.sup-tip .r span:nth-child(2){color:var(--muted)}
+.sup-tip .r b{font-weight:600}
+.sup-tip .r svg{display:block}
+.sup-tip .sum{margin-top:7px;padding-top:7px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px}
+.sup-tip .sum span{color:var(--muted)}
+.sup-tip .sum b.short{color:var(--sup-d)} .sup-tip .sum b.over{color:var(--sup-a)}
+@media (max-width:760px){
+  .sup-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sup-stats > div:nth-child(3){padding-left:0;border-left:0}
+  .sup-stats > div:nth-child(n+3){border-top:1px solid var(--line)}
+  .sup-stats .v{font-size:1.2rem}
+  .sup-legend{margin-left:0}
+  .sup-stats .s{white-space:normal}
+}
+@media (prefers-reduced-motion:reduce){.sup-chart.anim .bar,.sup-chart.anim .dline,.sup-chart.anim .dfut,.sup-chart.anim .dmk{animation:none;opacity:1}.sup-chart.anim .dline{stroke-dasharray:none}}
 
 @media (max-width:900px){
   .detail{grid-template-columns:1fr}
@@ -260,12 +294,11 @@ footer .ct{white-space:nowrap}
         <label class="f" for="sup-y0">시작 연도
           <select id="sup-y0"></select>
         </label>
-        <span class="legend"><span><i style="background:var(--seg2)"></i>입주 실적</span><span><i class="pl"></i>입주 예정</span><span><i class="ln"></i>수요(인구 × 0.5%)</span></span>
+        <span class="sup-legend"><span><svg width="12" height="12" aria-hidden="true"><rect width="12" height="12" rx="3" fill="var(--sup-a)"/></svg>입주 실적</span><span><svg width="12" height="12" aria-hidden="true"><defs><pattern id="hx" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="var(--sup-p)"/><line x1="0" y1="0" x2="0" y2="4" stroke="var(--sup-ph)" stroke-width="1.3" stroke-opacity=".7"/></pattern></defs><rect width="12" height="12" rx="3" fill="url(#hx)"/></svg>입주 예정</span><span><svg width="22" height="12" aria-hidden="true"><line x1="1" y1="6" x2="21" y2="6" stroke="var(--sup-d)" stroke-width="2" stroke-linecap="round"/><circle cx="11" cy="6" r="3.5" fill="var(--sup-d)" stroke="var(--surface)" stroke-width="2"/></svg>수요(권역별 주민등록인구 기반)</span></span>
         <button type="button" class="dl" id="dl-sup" title="선택한 지역의 연도별 입주 · 수요를 엑셀로 받습니다(전 지역 시트 포함)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 13.5h11"/></svg>엑셀</button>
       </div>
-      <div class="sup-sum" id="sup-sum"></div>
+      <div class="sup-stats" id="sup-stats"></div>
       <div class="sup-chart" id="sup-chart"><div class="placeholder">입주 · 수요 자료 불러오는 중…</div></div>
-      <div class="sup-tbl" id="sup-tbl"></div>
     </div>
   </section>
 
@@ -360,7 +393,7 @@ footer .ct{white-space:nowrap}
     <summary>데이터 기준과 읽는 법</summary>
     <p>청약 자료는 한국부동산원 청약홈의 APT 분양정보입니다. 모집공고일 기준 최근 6개월 공고를 받아 단지별 공급위치 · 세대수 · 주택형별 공급금액(최고가) · 시행사 · 시공사 · 입주예정월과, 주택형 · 순위 · 지역별 접수건수 및 청약결과를 정리했습니다. 무순위 · 잔여세대, 오피스텔 · 도시형생활주택은 포함하지 않습니다.</p>
     <p>세대수는 일반공급 세대(특별공급 미달분 이월 반영)이며, 괄호 안은 공급규모(특별공급 포함)입니다. 1순위 경쟁률은 해당지역 · 기타지역을 합친 1순위 접수건수를 일반공급 세대로 나눈 값입니다. 청약결과는 주택형별 결과를 합쳐 모든 주택형이 1순위에서 마감되면 '1순위 마감', 2순위까지 모두 마감되면 '순위 내 마감', 1 · 2순위 접수 합계가 공급 세대보다 적은 주택형이 있으면 '미달(부족 세대 수)', 그 밖에 순위 내 마감 기준(예비입주자 포함)을 못 채운 경우 '접수 종료'로 표시합니다. 실제 계약률은 공개 자료가 없어 담지 않았습니다.</p>
-    <p>입주 · 수요 추이의 입주 실적은 국토교통부 통계누리 '주택유형별 주택건설 준공실적'의 아파트 사용검사 실적(월별)을 연도별로 더한 값이고, 입주 예정은 청약홈 '입주(예정)정보'에 공개된 한국부동산원 · 부동산R114의 단지별 입주예정 세대수(30세대 이상, 향후 2년)입니다. 입주 예정 자료가 시작하는 달부터는 실적 대신 예정을 더해 같은 달을 두 번 세지 않으며, 이 때문에 올해 막대는 실적과 예정이 함께 쌓입니다. 수요는 행정안전부 주민등록인구(연말 기준, 올해 이후는 최근 달)에 0.5%를 곱한 값으로, 업계에서 흔히 쓰는 적정 수요 추정 방식입니다. 실적은 아파트 전체(임대 포함) 사용검사 기준이고 예정은 30세대 이상 단지 기준이라 두 자료의 범위가 완전히 같지는 않습니다.</p>
+    <p>입주 · 수요 추이의 입주 실적은 국토교통부 통계누리 '주택유형별 주택건설 준공실적'의 아파트 사용검사 실적(월별)을 연도별로 더한 값이고, 입주 예정은 청약홈 '입주(예정)정보'에 공개된 한국부동산원 · 부동산R114의 단지별 입주예정 세대수(30세대 이상, 향후 2년)입니다. 입주 예정 자료가 시작하는 달부터는 실적 대신 예정을 더해 같은 달을 두 번 세지 않으며, 이 때문에 올해 막대는 실적과 예정이 함께 쌓입니다. 수요는 권역별(시 · 도) 주민등록인구 기반 추정치로, 행정안전부 주민등록인구(연말 기준)에 0.5%를 곱한 값입니다. 업계에서 흔히 쓰는 적정 수요 추정 방식이며, 올해 이후는 최근 달 인구를 그대로 적용해 그래프에 점선으로 표시합니다. 실적은 아파트 전체(임대 포함) 사용검사 기준이고 예정은 30세대 이상 단지 기준이라 두 자료의 범위가 완전히 같지는 않습니다.</p>
     <p>미분양 자료는 국토교통부 통계누리 '미분양주택현황보고'의 시 · 군 · 구별 미분양현황과 공사완료후 미분양현황입니다. 매월 말 전월분이 공표되며, 광주 · 전남은 통계누리 표기대로 '전남광주'로 묶어 보여줍니다. 표의 '시군구 미분양'은 해당 단지 소재 시 · 군 · 구의 최근월 미분양(괄호는 준공 후)입니다.</p>
   </details>
 
@@ -604,58 +637,89 @@ $("#dl-u").addEventListener("click",()=>withBtn($("#dl-u"),()=>{
 }));
 
 /* ── 입주 · 수요 추이 ── */
-let SUP=null; const sp={rg:"전국",y0:null};
+let SUP=null, supOutside=false; const sp={rg:"전국",y0:null};
 const man=v=>v==null?"–":(Math.abs(v)>=10000?(v/10000).toFixed(1)+"만":Math.round(v).toLocaleString("ko-KR"));
+const manAx=v=>v>=10000?((v/10000)%1?(v/10000).toFixed(1):(v/10000).toFixed(0))+"만":Math.round(v).toLocaleString("ko-KR");
 function supRows(){
   const D=SUP.data[sp.rg], Y=SUP.years, i0=Math.max(0,Y.indexOf(sp.y0));
-  return Y.slice(i0).map((y,k)=>{ const i=i0+k, a=D.actual[i], p=D.plan[i], t=(a||0)+(p||0), d=D.demand[i];
-    const pm=SUP.partial[String(y)]||null, dp=d==null?null:(pm?Math.round(d*pm/12):d);
-    return {y,a,p,t:(a==null&&p==null)?null:t,d,dp,gap:(a==null&&p==null)||dp==null?null:t-dp,pop:D.pop[i],part:pm?`${pm}월까지`:null}; });
+  const py=+SUP.plan.from.slice(0,4), pf=+SUP.plan.from.slice(5);
+  return Y.slice(i0).map((y,k)=>{ const i=i0+k, d=D.demand[i], kind=y<py?"past":(y===py&&pf>1)?"mix":"plan";
+    const a=kind==="plan"?null:D.actual[i], p=kind==="past"?null:(D.plan[i]||0), t=(a==null&&p==null)?null:(a||0)+(p||0);
+    const pm=kind==="plan"?(SUP.partial[String(y)]||null):null, dp=d==null?null:(pm?Math.round(d*pm/12):d);
+    const dw=d==null?null:kind==="mix"?Math.round(d*(13-pf)/12):kind==="plan"?dp:null;   // 입주 예정 기간에 해당하는 수요
+    return {y,kind,a,p,t,d,dp,dw,gap:t==null||dp==null?null:t-dp,pop:D.pop[i],pm}; });
 }
-function niceMax(v){ if(!v) return 10; const e=Math.pow(10,Math.floor(Math.log10(v))), f=v/e; return ([1,1.2,1.6,2,2.4,3,4,5,6,8,10].find(k=>f<=k))*e; }
-function renderSup(){
+function niceStep(v){ const raw=v/4, e=Math.pow(10,Math.floor(Math.log10(raw||1))), f=raw/e; return [1,2,2.5,5,10].find(k=>f<=k)*e; }
+function topRound(x,y,w,h,r){ r=Math.min(r,w/2,h); if(h<=0) return ""; return `M${x},${y+h}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h}Z`; }
+const PLAN_FROM_M=()=>+SUP.plan.from.slice(5);
+function renderSup(animate){
   const box=$("#sup-chart");
-  if(!SUP){ box.innerHTML='<div class="placeholder">입주 · 수요 자료를 불러오지 못했습니다. 다음 수집 때 다시 표시됩니다.</div>'; return; }
-  const R=supRows(), W=Math.max(320,box.clientWidth), narrow=W<640, H=narrow?250:320;
-  const L=narrow?38:48, Rp=8, T=22, B=narrow?34:38, iw=W-L-Rp, ih=H-T-B, n=R.length, bw=iw/n;
-  const top=niceMax(Math.max(...R.map(r=>Math.max(r.t||0,r.d||0)))*1.08), y=v=>T+ih-(v/top)*ih, ticks=4;
-  const showBL=bw>=34, showDL=bw>=40;
-  let g=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(sp.rg)} 아파트 연도별 입주량과 수요량">`;
-  for(let k=0;k<=ticks;k++){ const v=top*k/ticks, yy=y(v); g+=`<line class="grid" x1="${L}" x2="${W-Rp}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}"/><text class="ax" x="${L-6}" y="${(yy+4).toFixed(1)}" text-anchor="end">${v>=10000?(v/10000).toFixed(v%10000?1:0)+"만":Math.round(v).toLocaleString("ko-KR")}</text>`; }
-  const pts=[];
-  R.forEach((r,i)=>{ const cx=L+bw*i+bw/2, w=Math.min(bw*.62,46), x=cx-w/2;
-    if(r.a){ const h=ih*r.a/top; g+=`<rect x="${x.toFixed(1)}" y="${y(r.a).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="var(--seg2)"/>`; }
-    if(r.p){ const base=r.a||0, h=ih*r.p/top; g+=`<rect x="${(x+.5).toFixed(1)}" y="${y(base+r.p).toFixed(1)}" width="${(w-1).toFixed(1)}" height="${(h-.5).toFixed(1)}" rx="2" fill="var(--seg3)" stroke="var(--seg2)" stroke-width="1" stroke-dasharray="3 2"/>`; }
-    if(showBL&&r.t){ const yy=y(r.t), hh=T+ih-yy, inside=hh>26, dy=r.d!=null?y(r.d):-99;
-      // 막대 가운데에 값 표시(참고 화면과 같은 배치). 수요선과 겹치면 막대 윗부분으로 옮김
-      let ly=inside?yy+hh/2+4:yy-5; if(inside&&r.a&&r.p){ const ph=ih*r.p/top; ly=ph>18?yy+ph/2+4:yy-5; } if(inside&&Math.abs(ly-4-dy)<14) ly=(dy>yy+hh/2)?Math.max(yy+14,dy-10):Math.min(T+ih-4,dy+18);
-      const onDark=inside&&!r.p; g+=`<text class="bl" x="${cx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" fill="${onDark&&r.a?"#fff":"var(--fg)"}">${man(r.t)}</text>`; }
-    g+=`<text class="yr ${r.a==null?"pl":""}" x="${cx.toFixed(1)}" y="${H-B+16}" text-anchor="middle">${narrow?"'"+String(r.y).slice(2):r.y}</text>`;
-    if(r.part||(r.a!=null&&r.p!=null)) g+=`<text class="note" x="${cx.toFixed(1)}" y="${H-B+29}" text-anchor="middle">${r.part?"상반기":"실적+예정"}</text>`;
-    if(r.d!=null) pts.push([cx,y(r.d),r.d]);
+  if(!SUP){ box.innerHTML='<div class="placeholder">입주 · 수요 자료를 불러오지 못했습니다. 다음 수집 때 다시 표시됩니다.</div>'; $("#sup-stats").innerHTML=""; return; }
+  const R=supRows(), W=Math.max(320,box.clientWidth), narrow=W<640, H=narrow?270:350;
+  const L=narrow?34:46, Rp=narrow?10:78, T=30, B=narrow?40:44, iw=W-L-Rp, ih=H-T-B, n=R.length, slot=iw/n;
+  const mx=Math.max(...R.map(r=>Math.max(r.t||0,r.d||0)),1), step=niceStep(mx*1.08), top=Math.ceil(mx*1.1/step)*step;
+  const y=v=>T+ih-(v/top)*ih, bw=Math.max(8,Math.min(narrow?16:30,slot*.52)), cx=i=>L+slot*i+slot/2;
+  const showCap=slot>=34, every=slot<26?2:1;
+  let g=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(sp.rg)} 아파트 연도별 입주량(막대)과 수요량(선)">
+  <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--sup-p)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--sup-ph)" stroke-width="1.6" stroke-opacity=".55"/></pattern></defs>`;
+  const zi=R.findIndex(r=>r.kind!=="past");
+  if(zi>=0){ const zx=L+slot*zi+(R[zi].kind==="mix"?slot/2:0); g+=`<rect x="${zx.toFixed(1)}" y="${T-22}" width="${(W-Rp-zx).toFixed(1)}" height="${ih+22}" fill="var(--sup-zone)"/><line class="grid" x1="${zx.toFixed(1)}" x2="${zx.toFixed(1)}" y1="${T-22}" y2="${T+ih}"/>${(()=>{ const f=SUP.plan.from.slice(2).replace("-","."), room=W-Rp-zx-8; return room>=92?`<text class="zone-t" x="${(zx+8).toFixed(1)}" y="${T-8}">입주 예정 ${f}~</text>`:`<text class="zone-t" x="${(W-Rp-4).toFixed(1)}" y="${T-8}" text-anchor="end">예정 ${f}~</text>`; })()}`; }
+  for(let v=0; v<=top+1; v+=step){ const yy=y(v); if(v>0) g+=`<line class="grid" x1="${L}" x2="${W-Rp}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}"/>`; g+=`<text class="ax" x="${L-8}" y="${(yy+4).toFixed(1)}" text-anchor="end">${manAx(v)}</text>`; }
+  g+=`<line class="base" x1="${L}" x2="${W-Rp}" y1="${T+ih}" y2="${T+ih}"/>`;
+  g+=`<g class="hls">${R.map((r,i)=>`<rect class="hl" data-i="${i}" x="${(L+slot*i+2).toFixed(1)}" y="${T-22}" width="${(slot-4).toFixed(1)}" height="${ih+22}" rx="6"/>`).join("")}</g>`;
+  const caps=[];
+  R.forEach((r,i)=>{ const x=cx(i)-bw/2, d=(i*28)+"ms";
+    const ah=r.a?ih*r.a/top:0, ph=r.p?ih*r.p/top:0, gap=(ah&&ph)?2:0;
+    if(ah) g+=`<path class="bar" style="animation-delay:${d}" d="${ph?`M${x},${T+ih}V${T+ih-ah}H${x+bw}V${T+ih}Z`:topRound(x,T+ih-ah,bw,ah,4)}" fill="var(--sup-a)"/>`;
+    if(ph) g+=`<path class="bar" style="animation-delay:${d}" d="${topRound(x,T+ih-ah-gap-ph,bw,ph,4)}" fill="url(#hatch)"/>`;
+    if(showCap&&r.t!=null&&(r.t||r.kind!=="past")){ let ly=T+ih-ah-gap-ph-7; const my=r.d==null?null:y(r.d); if(my!=null&&my>ly-17&&my<ly+9) ly=Math.min(ly,my-11); caps.push(`<text class="cap ${r.kind==="plan"?"pl":""}" x="${cx(i).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle">${man(r.t)}</text>`); }
+    if(i%every===0||i===n-1){ g+=`<text class="yr ${r.kind==="plan"?"pl":""}" x="${cx(i).toFixed(1)}" y="${T+ih+18}" text-anchor="middle">${narrow?"'"+String(r.y).slice(2):r.y}</text>`;
+      const sub=r.kind==="mix"?"실적 + 예정":r.kind==="plan"?(r.pm?`~${r.pm}월 예정`:"예정"):"";
+      if(sub&&!narrow) g+=`<text class="sub" x="${cx(i).toFixed(1)}" y="${T+ih+33}" text-anchor="middle">${sub}</text>`; }
   });
-  if(pts.length){ g+=`<polyline points="${pts.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ")}" fill="none" stroke="var(--up)" stroke-width="2" stroke-linejoin="round"/>`;
-    pts.forEach((p,i)=>{ g+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="var(--surface)" stroke="var(--up)" stroke-width="1.6"/>`;
-      if(showDL&&(i===0||i===pts.length-1||pts[i][2]!==pts[i-1][2])) g+=`<text class="dl" x="${p[0].toFixed(1)}" y="${(p[1]-8).toFixed(1)}" text-anchor="middle">${man(p[2])}</text>`; }); }
-  R.forEach((r,i)=>{ g+=`<rect class="hit" data-i="${i}" x="${(L+bw*i).toFixed(1)}" y="${T}" width="${bw.toFixed(1)}" height="${ih}"/>`; });
+  const nowY=new Date().getFullYear();
+  const pts=R.map((r,i)=>r.d==null?null:[cx(i),y(r.d),r.d,r.y]).filter(Boolean);
+  if(pts.length>1){ const P=a=>a.map((p,k)=>(k?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join("");
+    const k0=pts.findIndex(p=>p[3]>=nowY), solid=k0<0?pts:pts.slice(0,k0), fut=k0<=0?(k0===0?pts:[]):pts.slice(k0-1);
+    let len=0; for(let k=1;k<solid.length;k++) len+=Math.hypot(solid[k][0]-solid[k-1][0],solid[k][1]-solid[k-1][1]);
+    if(solid.length>1) g+=`<path class="dline" style="--len:${Math.ceil(len)}" d="${P(solid)}" fill="none" stroke="var(--sup-d)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    if(fut.length>1) g+=`<path class="dfut" d="${P(fut)}" fill="none" stroke="var(--sup-d)" stroke-width="2" stroke-linecap="round"/>`;
+    g+=`<g class="dmk">${pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.6" fill="${p[3]>=nowY?"var(--surface)":"var(--sup-d)"}" stroke="${p[3]>=nowY?"var(--sup-d)":"var(--surface)"}" stroke-width="2"/>`).join("")}</g>`;
+    const e=pts[pts.length-1];
+    const ex=e[0]+Math.max(bw/2+8,24);
+    if(!narrow) g+=`<text class="end-k" x="${ex.toFixed(1)}" y="${(e[1]-3).toFixed(1)}">수요</text><text class="end-v" x="${ex.toFixed(1)}" y="${(e[1]+12).toFixed(1)}">${man(e[2])}</text>`; }
+  g+=caps.join("");
+  g+=R.map((r,i)=>`<rect class="hit" data-i="${i}" x="${(L+slot*i).toFixed(1)}" y="${T-22}" width="${slot.toFixed(1)}" height="${ih+40}"/>`).join("");
   g+=`</svg><div class="sup-tip" hidden></div>`;
-  box.innerHTML=g;
-  const tip=box.querySelector(".sup-tip");
-  const show=i=>{ const r=R[i]; box.querySelectorAll(".hit").forEach(h=>h.classList.toggle("on",+h.dataset.i===i));
-    tip.innerHTML=`<b>${r.y}년${r.part?" ("+r.part+")":""}</b><br>${r.a!=null?`입주 실적 <b>${fmt(r.a)}</b>${r.p!=null?" · ":""}`:""}${r.p!=null?`입주 예정 <b>${fmt(r.p)}</b>`:""}${r.a!=null&&r.p!=null?`<br>합계 <b>${fmt(r.t)}</b>`:""}<br>수요 <b>${fmt(r.d)}</b>/년 (인구 ${r.pop?(r.pop/10000).toFixed(1)+"만":"–"} × 0.5%)${r.part?`<br>같은 기간 수요 <b>${fmt(r.dp)}</b>`:""}${r.gap!=null?`<br>${r.gap>=0?"공급 초과":"공급 부족"} <b>${fmt(Math.abs(r.gap))}</b>`:""}`;
-    tip.hidden=false; const bx=L+bw*i+bw/2, sc=box.clientWidth/W; const tw=tip.offsetWidth/2;
-    tip.style.left=Math.max(tw,Math.min(box.clientWidth-tw,bx*sc))+"px"; tip.style.top=(Math.min(y(Math.max(r.t||0,r.d||0)),T+ih-20)*sc-6)+"px"; };
-  box.querySelectorAll(".hit").forEach(h=>{ h.addEventListener("pointerenter",()=>show(+h.dataset.i)); h.addEventListener("pointerdown",()=>show(+h.dataset.i)); });
-  box.addEventListener("pointerleave",()=>{ tip.hidden=true; box.querySelectorAll(".hit.on").forEach(h=>h.classList.remove("on")); });
-  // 요약 · 표
-  const past=R.filter(r=>r.a!=null&&r.p==null&&r.t!=null), fut=R.filter(r=>r.p!=null);
-  const avg=a=>a.length?a.reduce((x,r)=>x+r.t,0)/a.length:null, avgd=a=>a.length?a.reduce((x,r)=>x+(r.d||0),0)/a.length:null;
-  const fs=fut.reduce((x,r)=>x+r.p,0), fd=fut.reduce((x,r)=>x+(r.p!=null&&r.a!=null?Math.round((r.d||0)*(12-(+SUP.plan.from.slice(5))+1)/12):(r.dp||0)),0);
-  $("#sup-sum").innerHTML=`<span>${past.length?`${past[0].y}~${past[past.length-1].y} 연평균 입주 <b>${man(avg(past))}</b> · 수요 <b>${man(avgd(past))}</b>`:""}</span>${fut.length?`<span>향후 입주예정(${SUP.plan.from.replace("-",".")}~${SUP.plan.to.replace("-",".")}) <b>${man(fs)}</b> · 같은 기간 수요 <b>${man(fd)}</b> <span class="chg ${fs-fd>=0?"down":"up"}">${fs-fd>=0?"공급 초과":"공급 부족"} ${man(Math.abs(fs-fd))}</span></span>`:""}`;
-  $("#sup-tbl").innerHTML=`<table><thead><tr><th>연도</th>${R.map(r=>`<th>${r.y}${r.part?`<small class="dim"> (~${r.part.replace("월까지","월")})</small>`:""}</th>`).join("")}</tr></thead><tbody>
-    <tr><td>입주</td>${R.map(r=>`<td>${fmt(r.t)}</td>`).join("")}</tr>
-    <tr><td>수요</td>${R.map(r=>`<td>${fmt(r.dp)}</td>`).join("")}</tr>
-    <tr><td>과부족</td>${R.map(r=>`<td class="${r.gap==null?"":r.gap>=0?"pos":"neg"}">${r.gap==null?"–":(r.gap>0?"+":"")+fmt(r.gap)}</td>`).join("")}</tr></tbody></table>`;
+  box.innerHTML=g; box.classList.toggle("anim",!!animate);
+  const tip=box.querySelector(".sup-tip"), sc=()=>box.clientWidth/W;
+  const swA=`<svg width="10" height="10"><rect width="10" height="10" rx="2.5" fill="var(--sup-a)"/></svg>`, swP=`<svg width="10" height="10"><rect width="10" height="10" rx="2.5" fill="url(#hatch)"/></svg>`, swD=`<svg width="14" height="10"><line x1="1" y1="5" x2="13" y2="5" stroke="var(--sup-d)" stroke-width="2" stroke-linecap="round"/></svg>`;
+  const pf=PLAN_FROM_M();
+  const show=i=>{ const r=R[i]; box.querySelectorAll(".hl").forEach(h=>h.classList.toggle("on",+h.dataset.i===i));
+    const rows=[];
+    if(r.kind!=="plan") rows.push(`<div class="r">${swA}<span>입주 실적${r.kind==="mix"?` (1~${pf-1}월)`:""}</span><b>${r.a==null?"–":fmt(r.a)}</b></div>`);
+    if(r.kind!=="past") rows.push(`<div class="r">${swP}<span>입주 예정${r.kind==="mix"?` (${pf}~12월)`:r.pm?` (1~${r.pm}월)`:""}</span><b>${fmt(r.p)}</b></div>`);
+    rows.push(`<div class="r">${swD}<span>수요${r.pm?` (${r.pm}개월분)`:""}</span><b>${fmt(r.dp)}</b></div>`);
+    const sum=r.gap==null?"":`<div class="sum"><span>${r.gap>=0?"공급 초과":"공급 부족"}</span><b class="${r.gap>=0?"over":"short"}">${r.gap>=0?"+":"−"}${fmt(Math.abs(r.gap))}</b></div>`;
+    tip.innerHTML=`<div class="t">${r.y}년<small>${esc(sp.rg)} · 인구 ${r.pop?(r.pop/10000).toLocaleString("ko-KR",{maximumFractionDigits:1})+"만":"–"}</small></div>${rows.join("")}${sum}`;
+    tip.hidden=false; const s=sc(), bx=cx(i)*s, tw=tip.offsetWidth, th=tip.offsetHeight;
+    let left=bx+18; if(left+tw>box.clientWidth) left=bx-18-tw; left=Math.max(0,left);
+    tip.style.left=left+"px"; tip.style.top=Math.max(0,(T+ih*0.18)*s-th*0.2)+"px"; };
+  const hide=()=>{ tip.hidden=true; box.querySelectorAll(".hl.on").forEach(h=>h.classList.remove("on")); };
+  box.querySelectorAll(".hit").forEach(h=>{ h.addEventListener("pointerenter",e=>{ if(e.pointerType!=="touch") show(+h.dataset.i); }); h.addEventListener("pointerdown",()=>show(+h.dataset.i)); });
+  box.onpointerleave=e=>{ if(e.pointerType!=="touch") hide(); };
+  if(!supOutside){ supOutside=true; document.addEventListener("pointerdown",e=>{ const b=$("#sup-chart"); if(b&&!b.contains(e.target)){ const t=b.querySelector(".sup-tip"); if(t) t.hidden=true; b.querySelectorAll(".hl.on").forEach(h=>h.classList.remove("on")); } }); }
+  // 요약 숫자
+  const past=R.filter(r=>r.kind==="past"&&r.a!=null&&r.d!=null), fut=R.filter(r=>r.kind!=="past");
+  const avg=(a,k)=>a.length?a.reduce((x,r)=>x+(r[k]||0),0)/a.length:null;
+  const fs=fut.reduce((x,r)=>x+(r.p||0),0), fd=fut.reduce((x,r)=>x+(r.dw||0),0), gap=fs-fd;
+  const range=past.length?`${past[0].y}~${past[past.length-1].y}`:"";
+  const big=v=>{ const m=man(v); return m.endsWith("만")?`${m.slice(0,-1)}<small>만</small>`:m; };
+  $("#sup-stats").innerHTML=`
+    <div><span class="k">연평균 입주 실적</span><span class="v">${big(avg(past,"t"))}</span><span class="s">${range} · 국토교통부 준공</span></div>
+    <div><span class="k">연평균 수요</span><span class="v">${big(avg(past,"d"))}</span><span class="s">${range} · 권역별 주민등록인구 기반</span></div>
+    <div><span class="k">향후 입주 예정</span><span class="v">${fut.length?big(fs):"–"}</span><span class="s">${SUP.plan.from.replace("-",".")}~${SUP.plan.to.replace("-",".")} · 부동산원 · R114</span></div>
+    <div><span class="k">같은 기간 수요 대비</span><span class="v">${fut.length?(gap>=0?"+":"−")+big(Math.abs(gap)):"–"}${fut.length?`<span class="tag ${gap>=0?"over":"short"}">${gap>=0?"공급 초과":"공급 부족"}</span>`:""}</span><span class="s">같은 기간 수요 ${man(fd)}</span></div>`;
 }
 function initSup(){
   if(!SUP){ renderSup(); return; }
@@ -664,20 +728,24 @@ function initSup(){
   const ys=SUP.years.filter(y=>y<=SUP.years[SUP.years.length-1]-2);
   sp.y0=ys.includes(now-10)?now-10:ys[0];
   $("#sup-y0").innerHTML=ys.map(y=>`<option value="${y}" ${y===sp.y0?"selected":""}>${y}년</option>`).join("");
-  $("#sup-rg").addEventListener("change",e=>{ sp.rg=e.target.value; renderSup(); });
-  $("#sup-y0").addEventListener("change",e=>{ sp.y0=+e.target.value; renderSup(); });
-  let t; window.addEventListener("resize",()=>{ clearTimeout(t); t=setTimeout(renderSup,120); });
+  $("#sup-rg").addEventListener("change",e=>{ sp.rg=e.target.value; renderSup(true); });
+  $("#sup-y0").addEventListener("change",e=>{ sp.y0=+e.target.value; renderSup(true); });
+  let t, lw=0; window.addEventListener("resize",()=>{ clearTimeout(t); t=setTimeout(()=>{ const w=$("#sup-chart").clientWidth; if(w!==lw){ lw=w; renderSup(false); } },120); });
   $("#sup-note").textContent=`입주 실적 국토교통부(~${SUP.actual_through.replace("-",".")}) · 입주 예정 한국부동산원 · 부동산R114(${SUP.plan.basis} 기준) · 인구 행정안전부(${(SUP.pop_latest||"").replace("-",".")})`;
-  renderSup();
+  renderSup(true);
 }
 $("#dl-sup").addEventListener("click",()=>withBtn($("#dl-sup"),()=>{
   const wb=XLSX.utils.book_new(), Y=SUP.years;
-  const sheet=rg=>{ const D=SUP.data[rg]; const head=["연도","입주 실적(호)","입주 예정(세대)","입주 합계","인구(명)","수요(인구×0.5%, 해당 기간)","과부족"];
-    const body=Y.map((y,i)=>{ const a=D.actual[i], p=D.plan[i], t=(a==null&&p==null)?null:(a||0)+(p||0); const pm=SUP.partial[String(y)], dp=D.demand[i]==null?null:(pm?Math.round(D.demand[i]*pm/12):D.demand[i]); return [y+(pm?` (${pm}월까지)`:""),a,p,t,D.pop[i],dp,t==null||dp==null?null:t-dp]; });
+  const py=+SUP.plan.from.slice(0,4), pf=+SUP.plan.from.slice(5);
+  const sheet=rg=>{ const D=SUP.data[rg]; const head=["연도","입주 실적(호)","입주 예정(세대)","입주 합계","인구(명)","수요(권역별 주민등록인구 기반, 인구×0.5%, 해당 기간)","과부족"];
+    const body=Y.map((y,i)=>{ const kind=y<py?"past":(y===py&&pf>1)?"mix":"plan", a=kind==="plan"?null:D.actual[i], p=kind==="past"?null:(D.plan[i]||0), t=(a==null&&p==null)?null:(a||0)+(p||0);
+      const pm=kind==="plan"?SUP.partial[String(y)]:null, dp=D.demand[i]==null?null:(pm?Math.round(D.demand[i]*pm/12):D.demand[i]);
+      const lb=kind==="mix"?`${y} (실적 1~${pf-1}월 + 예정 ${pf}~12월)`:kind==="plan"?`${y} (예정${pm?` 1~${pm}월`:""})`:String(y);
+      return [lb,a,p,t,D.pop[i],dp,t==null||dp==null?null:t-dp]; });
     const ws=XLSX.utils.aoa_to_sheet([head,...body]); numFmt(ws,body.length,[1,2,3,4,5,6]); ws["!cols"]=head.map(()=>({wch:14})); return ws; };
   XLSX.utils.book_append_sheet(wb,sheet(sp.rg),sp.rg);
   SUP.regions.filter(r=>r!==sp.rg).forEach(r=>XLSX.utils.book_append_sheet(wb,sheet(r),r));
-  const info=[["자료","아파트 분양시장 청약 · 미분양 현황 대시보드 (apt-watch.pages.dev) — 입주 · 수요 추이"],["입주 실적","국토교통부 통계누리 주택유형별 주택건설 준공실적(아파트 사용검사), "+SUP.actual_through+"까지"],["입주 예정","청약홈 입주(예정)정보 — 한국부동산원 · 부동산R114, "+SUP.plan.basis+" 기준, "+SUP.plan.from+" ~ "+SUP.plan.to+" ("+SUP.plan.complexes+"개 단지)"],["겹침 처리","입주 예정이 시작하는 달부터는 실적 대신 예정을 합산"],["수요","행정안전부 주민등록인구(연말, 올해 이후는 "+SUP.pop_latest+") × 0.5%"],["비고","광주 · 전남은 '전남광주'로 합산"]];
+  const info=[["자료","아파트 분양시장 청약 · 미분양 현황 대시보드 (apt-watch.pages.dev) — 입주 · 수요 추이"],["입주 실적","국토교통부 통계누리 주택유형별 주택건설 준공실적(아파트 사용검사), "+SUP.actual_through+"까지"],["입주 예정","청약홈 입주(예정)정보 — 한국부동산원 · 부동산R114, "+SUP.plan.basis+" 기준, "+SUP.plan.from+" ~ "+SUP.plan.to+" ("+SUP.plan.complexes+"개 단지)"],["겹침 처리","입주 예정이 시작하는 달부터는 실적 대신 예정을 합산"],["수요","권역별 주민등록인구 기반 — 행정안전부 주민등록인구(연말, 올해 이후는 "+SUP.pop_latest+") × 0.5%"],["비고","광주 · 전남은 '전남광주'로 합산"]];
   const wi=XLSX.utils.aoa_to_sheet(info); wi["!cols"]=[{wch:12},{wch:90}]; XLSX.utils.book_append_sheet(wb,wi,"안내");
   XLSX.writeFile(wb,`아파트_입주_수요_${stamp()}.xlsx`);
 }));
