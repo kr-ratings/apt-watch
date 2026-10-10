@@ -1,27 +1,24 @@
 {
- "generated": "2026-10-10 21:32",
+ "generated": "2026-10-10 21:57",
  "sources": {
   "통계누리": {
-   "ok": true,
-   "latest": "2026-08",
-   "regions": 249
-  },
-  "시군구 입주": {
-   "ok": true,
-   "kapt": "2026.10.09",
-   "units": 228
+   "ok": false,
+   "error": "HTTPSConnectionPool(host='stat.molit.go.kr', port=443): Max retries exceeded with url: /portal/stat/data.do?formId=2082&styleNum=128&apprYn=Y&startDate=202508&endDate=202610 (Caused by ConnectTimeoutError(<HTTPSConnection(host='stat.molit.go.kr', port=443) at 0x7f220db90800>, 'Connection to stat.mol"
   },
   "입주 · 수요": {
-   "ok": true,
-   "actual_through": "2026-08",
-   "plan_basis": "2026년 6월 말",
-   "pop": "2026-09"
+   "ok": false,
+   "error": "HTTPSConnectionPool(host='jumin.mois.go.kr', port=443): Max retries exceeded with url: /statMonth.do (Caused by ConnectTimeoutError(<HTTPSConnection(host='jumin.mois.go.kr', port=443) at 0x7f220d6df8c0>, 'Connection to jumin.mois.go.kr timed out. (connect timeout=60)'))"
   },
   "청약홈": {
    "ok": true,
    "rows": 148,
    "fails": 0,
    "fetched": 9
+  },
+  "시군구 입주": {
+   "ok": true,
+   "kapt": "2026.10.09",
+   "units": 228
   }
  }
 }
