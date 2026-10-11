@@ -1,33 +1,37 @@
 {
- "generated": "2026-10-11 22:35",
+ "generated": "2026-10-12 07:27",
  "sources": {
-  "단지별 미분양(지자체)": {
-   "ok": true,
-   "regions": 12,
-   "of": 12,
-   "failed": []
-  },
   "통계누리": {
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='stat.molit.go.kr', port=443): Max retries exceeded with url: /portal/stat/data.do?formId=2082&styleNum=128&apprYn=Y&startDate=202508&endDate=202610 (Caused by ConnectTimeoutError(<HTTPSConnection(host='stat.molit.go.kr', port=443) at 0x7fc44caccce0>, 'Connection to stat.mol"
-  },
-  "입주 · 수요": {
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='www.k-apt.go.kr', port=443): Max retries exceeded with url: /web/board/webReference/boardList.do (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.k-apt.go.kr', port=443) at 0x7fc44c6277a0>, 'Connection to www.k-apt.go.kr timed out. (connect timeout=60)'))"
+   "ok": true,
+   "latest": "2026-08",
+   "regions": 249
   },
   "착공 · 인허가": {
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='stat.molit.go.kr', port=443): Max retries exceeded with url: /portal/stat/data.do?formId=5387&styleNum=1&apprYn=Y&startDate=201101&endDate=201512 (Caused by ConnectTimeoutError(<HTTPSConnection(host='stat.molit.go.kr', port=443) at 0x7fc44c66b500>, 'Connection to stat.molit"
+   "ok": true,
+   "through": "2026-08"
+  },
+  "시군구 입주": {
+   "ok": true,
+   "units": 228
+  },
+  "입주 · 수요": {
+   "ok": true,
+   "kapt": "2026.10.09",
+   "plan_basis": "2026년 6월 말",
+   "pop": "2026-09",
+   "notices": 735
   },
   "청약홈": {
    "ok": true,
    "rows": 148,
    "fails": 0,
-   "fetched": 9
+   "fetched": 15
   },
-  "시군구 입주": {
+  "단지별 미분양(지자체)": {
    "ok": true,
-   "units": 228
+   "regions": 11,
+   "of": 12,
+   "failed": []
   }
  }
 }
