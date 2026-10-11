@@ -316,9 +316,9 @@ def total_from_text(text: str, units: int) -> int | None:
     """'공급규모 : 아파트 … 총 1,515세대[조합원 817세대 …] 중 일반분양 432세대' 에서 단지 전체 세대수를 고른다.
     PDF에 따라 글자 순서가 뒤섞여 나오므로(예: '총 37 [ 28 , 14 , : 189 4 , 1,499 , [ 세대 조합원 …'),
     '총 N세대'를 못 찾으면 공급규모 문단의 천 단위 숫자 가운데 가장 큰 값을 쓴다."""
+    # 글자 순서가 뒤섞인 PDF에서 '3 , 480'(지상 3층, 480세대)을 3,480으로 붙이면 안 되므로 숫자를 이어 붙이지 않는다
     text = re.sub(r"\s+", " ", text)
-    text = re.sub(r"(?<=\d)\s*,\s*(?=\d{3}(?!\d))", ",", text)
-    ok = lambda v: v and units <= v <= max(units * 30, units + 15000)  # noqa: E731
+    ok = lambda v: v and units <= v <= units * 25  # noqa: E731   정비사업도 전체/일반분양은 대개 20배 이내
     for m in re.finditer(r"공급\s*규모", text):
         win = text[m.end():m.end() + 320]
         win = re.split(r"입주\s*시기|입주\s*예정|■|▣|※", win[3:], maxsplit=1)[0]
@@ -326,7 +326,9 @@ def total_from_text(text: str, units: int) -> int | None:
             v = num(t.group(1))
             if ok(v):
                 return int(v)
-        cand = [num(x) for x in COMMA_NUM.findall(win)]
+        if "조합원" not in win and "일반분양" not in win:
+            continue
+        cand = [num(x) for x in COMMA_NUM.findall(re.sub(r"\d[\d,.]*\s*(?:㎡|m2|평|원|%)", " ", win))]
         cand = [v for v in cand if ok(v)]
         if cand:
             return int(max(cand))
