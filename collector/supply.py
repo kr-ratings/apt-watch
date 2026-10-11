@@ -3,7 +3,7 @@
 전국 · 시도 · 시군구 모두 같은 단지 자료로 센다(시군구 합 = 시도).
 - 입주 실적: K-apt 단지별 사용승인일 · 세대수(sgg.kapt_completions). 국토부 준공 실적은 참고값(molit)으로만 남긴다.
 - 입주 예정: 청약홈 입주예정(향후 2년, 부동산원 · R114)의 분양 · 분양임대 단지. 순수 임대(청년안심주택 · 매입임대 등)는
-  지인처럼 뺀다. 그 뒤 달은 청약홈 분양 공고의 입주예정월 · 공급세대수(plan_ah).
+  지인처럼 뺀다. 그 뒤 달은 청약홈 분양 공고의 입주예정월과 모집공고문의 단지 전체 세대수(plan_ah).
 - 수요: 주민등록인구 × 0.5%.
 
 아래는 예전(국토부 기준) 설명으로, 국토부 참고값 계산에 그대로 쓰인다.
@@ -206,7 +206,7 @@ def collect_supply(s, status) -> None:
         log("국토부 준공(참고) 실패", e)
         comp, comp_last = {}, None
     try:
-        ahm, ahmeta = ah_movein(s, short)
+        ahm, ahmeta = ah_movein(s, short, after=meta["to"])
     except Exception as e:  # noqa: BLE001
         log("청약홈 분양 공고(입주예정월) 실패", e)
         ahm, ahmeta = [], {"error": str(e)[:200]}

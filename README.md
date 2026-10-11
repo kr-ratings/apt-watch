@@ -16,7 +16,7 @@
 | `cache/applyhome.json` | 청약홈 단지별 원자료 캐시(이미 받은 상세 · 확정된 경쟁률은 다시 받지 않음) |
 | `collector/collect.py` | 수집기(청약 · 미분양) |
 | `collector/supply.py` | 입주 · 수요 수집기 |
-| `collector/sgg.py` | K-apt 관리비공개의무단지 기본정보(사용승인일 · 세대수, 매주 게시), 청약홈 분양 공고 입주예정월(`cache/movein.json`), 행안부 전체 시군구 인구 |
+| `collector/sgg.py` | K-apt 관리비공개의무단지 기본정보(사용승인일 · 세대수, 매주 게시), 청약홈 분양 공고 입주예정월 · 모집공고문 단지 전체 세대수(`cache/movein.json`), 행안부 전체 시군구 인구 |
 | `.github/workflows/update.yml` | 평일 07:10 KST 자동 실행 |
 
 ## 갱신 방식

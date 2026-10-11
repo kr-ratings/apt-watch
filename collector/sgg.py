@@ -4,7 +4,7 @@
   의무관리대상(300세대 이상, 150세대 이상 승강기 · 중앙난방 등)과 100세대 이상 가입 단지가 대상이라
   소규모 단지는 빠진다. 연립 · 다세대는 뺀다.
 - 입주 예정: 청약홈 입주예정 엑셀(supply.plans, 향후 2년)의 분양 · 분양임대 단지(순수 임대 제외),
-  그 뒤 달은 청약홈 분양 공고의 입주예정월 · 공급세대수(ah_movein).
+  그 뒤 달은 청약홈 분양 공고의 입주예정월과 모집공고문의 단지 전체 세대수(ah_movein).
 - 수요: 행정안전부 주민등록인구(전체 시군구 현황, 연말 · 최근 달) × 0.5%.
 
 도(道)는 시 · 군 단위(일반구는 시로 합산), 특별 · 광역시는 구 · 군 단위로 묶는다.
@@ -207,8 +207,9 @@ def addr_unit(addr: str | None, short) -> tuple[str, str] | None:
     return unit_of(short(m.group(1)), m.group(2)) if m else None
 
 
-def ah_movein(s, short, months: int = 30, max_fetch: int = 900) -> tuple[list[dict], dict]:
-    """청약홈 분양 공고(최근 months개월)의 입주예정월 · 공급세대수. 단지 상세는 cache/movein.json에 쌓아 둔다."""
+def ah_movein(s, short, after: str = "000000", months: int = 30, max_fetch: int = 900, max_pdf: int = 400) -> tuple[list[dict], dict]:
+    """청약홈 분양 공고(최근 months개월)의 입주예정월 · 세대수. 단지 상세는 cache/movein.json에 쌓아 둔다.
+    입주예정월이 after(입주예정 엑셀 마지막 달) 뒤인 공고는 모집공고문 PDF에서 단지 전체 세대수(조합원분 포함)를 읽는다."""
     import json as _json
 
     from collect import AH, CACHE, ah_detail, cells
@@ -262,6 +263,24 @@ def ah_movein(s, short, months: int = 30, max_fetch: int = 900) -> tuple[list[di
             time.sleep(0.3)
         except Exception as e:  # noqa: BLE001
             log("청약홈 공고 상세 실패", x["name"], e)
+    pdfs, got = 0, 0
+    for x in lst:
+        c = cache.get(x["pb"])
+        if not c or not c.get("m") or not c.get("u") or "t" in c or pdfs >= max_pdf:
+            continue
+        if re.sub(r"\D", "", c["m"])[:6] <= after:
+            continue
+        try:
+            v, why = notice_total(s, x["hm"], x["pb"], int(c["u"]))
+            c["t"] = v or 0
+            if v:
+                got += 1
+            else:
+                log("공고문 총 세대수 없음", x["name"], why)
+        except Exception as e:  # noqa: BLE001
+            log("공고문 읽기 실패", x["name"], e)
+        pdfs += 1
+        time.sleep(0.3)
     keep = {x["pb"] for x in lst}
     cache = {k: v for k, v in cache.items() if k in keep}
     CACHE.mkdir(exist_ok=True)
@@ -276,6 +295,64 @@ def ah_movein(s, short, months: int = 30, max_fetch: int = 900) -> tuple[list[di
             continue
         sd = short(x["sido"])
         u = addr_unit(c.get("a"), short)
-        out.append({"name": x["name"], "sd": u[0] if u else sd, "unit": u[1] if u else None, "ym": ym, "n": int(c["u"])})
-    log("청약홈 분양 공고(입주예정월)", len(lst), "건, 새로 받은 상세", fetched)
-    return out, {"notices": len(lst), "fetched": fetched}
+        out.append({"name": x["name"], "sd": u[0] if u else sd, "unit": u[1] if u else None, "ym": ym,
+                    "n": int(c.get("t") or c["u"]), "sup": int(c["u"])})
+    # 같은 단지가 여러 공고(1·2차 등)로 나와 공고문마다 같은 '총 세대수'가 적힌 경우 한 번만 센다
+    seen, dedup = set(), []
+    for o in out:
+        k = (o["sd"], o["unit"], o["ym"], o["n"])
+        if o["n"] != o["sup"] and k in seen:
+            continue
+        seen.add(k); dedup.append(o)
+    log("청약홈 분양 공고(입주예정월)", len(lst), "건, 새로 받은 상세", fetched, "· 공고문 총 세대수", got, "/", pdfs)
+    return dedup, {"notices": len(lst), "fetched": fetched, "pdf_read": pdfs, "pdf_total": got}
+
+
+TOTAL_RE = re.compile(r"(?:총|전체)\s*([\d,]{2,7})\s*세대")
+COMMA_NUM = re.compile(r"(?<![\d.])(\d{1,3}(?:,\d{3})+)(?![\d.])")
+
+
+def total_from_text(text: str, units: int) -> int | None:
+    """'공급규모 : 아파트 … 총 1,515세대[조합원 817세대 …] 중 일반분양 432세대' 에서 단지 전체 세대수를 고른다.
+    PDF에 따라 글자 순서가 뒤섞여 나오므로(예: '총 37 [ 28 , 14 , : 189 4 , 1,499 , [ 세대 조합원 …'),
+    '총 N세대'를 못 찾으면 공급규모 문단의 천 단위 숫자 가운데 가장 큰 값을 쓴다."""
+    text = re.sub(r"\s+", " ", text)
+    text = re.sub(r"(?<=\d)\s*,\s*(?=\d{3}(?!\d))", ",", text)
+    ok = lambda v: v and units <= v <= max(units * 30, units + 15000)  # noqa: E731
+    for m in re.finditer(r"공급\s*규모", text):
+        win = text[m.end():m.end() + 320]
+        win = re.split(r"입주\s*시기|입주\s*예정|■|▣|※", win[3:], maxsplit=1)[0]
+        for t in TOTAL_RE.finditer(win):
+            v = num(t.group(1))
+            if ok(v):
+                return int(v)
+        cand = [num(x) for x in COMMA_NUM.findall(win)]
+        cand = [v for v in cand if ok(v)]
+        if cand:
+            return int(max(cand))
+    return None
+
+
+def notice_total(s, hm: str, pb: str, units: int) -> tuple[int | None, str]:
+    """입주자모집공고문(PDF)의 공급규모 문단에서 단지 전체 세대수(조합원분 · 임대 포함)를 읽는다.
+    청약홈 상세의 '공급규모'는 이번 공고 물량(일반분양 · 특별공급)만이라 정비사업은 실제 단지보다 작다."""
+    from pdfminer.high_level import extract_text
+
+    from collect import AH
+    page = req(s, "GET", f"{AH}/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo={hm}&pblancNo={pb}").text
+    links = re.findall(r'(?s)<a[^>]+href="([^"]*getAtchmnfl\.do[^"]*)"[^>]*>(.*?)</a>', page)
+    url = next((u for u, t in links if "모집공고" in re.sub(r"<[^>]+>", "", t)), links[0][0] if links else None)
+    if not url:
+        return None, "공고문 링크 없음"
+    url = url.replace("&amp;", "&")
+    if url.startswith("/"):
+        url = "https://static.applyhome.co.kr" + url
+    r = req(s, "GET", url, timeout=120)
+    if not r.content.startswith(b"%PDF"):
+        return None, "PDF 아님"
+    try:
+        text = extract_text(io.BytesIO(r.content), maxpages=12)
+    except Exception as e:  # noqa: BLE001
+        return None, f"PDF 읽기 실패 {e}"
+    v = total_from_text(text, units)
+    return v, "ok" if v else "공급규모 문단에서 총 세대수를 찾지 못함"
