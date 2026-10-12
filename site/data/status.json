@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-12 07:27",
+ "generated": "2026-10-13 07:28",
  "sources": {
   "통계누리": {
    "ok": true,
@@ -25,11 +25,11 @@
    "ok": true,
    "rows": 148,
    "fails": 0,
-   "fetched": 15
+   "fetched": 16
   },
   "단지별 미분양(지자체)": {
    "ok": true,
-   "regions": 11,
+   "regions": 12,
    "of": 12,
    "failed": []
   }
