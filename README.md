@@ -1,8 +1,8 @@
 # 아파트 수급 · 분양시장 현황 대시보드
 
-청약홈 APT 분양공고(최근 6개월)의 공급금액 · 청약 경쟁률과 국토교통부 시·군·구별 미분양 · 준공 후 미분양을 한 화면에 보여 주는 정적 사이트입니다. 디자인은 [유동화시장 등급 · 금리 현황](https://daily-ratings.pages.dev/) · [시공사 시공능력평가 · 신용등급 현황](https://cons-ratings.pages.dev/) 대시보드와 같은 토큰을 씁니다.
+청약홈 APT 분양공고(최근 6개월)의 공급금액 · 청약 경쟁률과 국토교통부 시·군·구별 미분양 · 준공 후 미분양을 한 화면에 보여 주는 정적 사이트입니다. 디자인은 [유동화시장 등급 · 금리 현황](https://abs.namepf.com/) · [시공사 시공능력평가 · 신용등급 현황](https://cons.namepf.com/) 대시보드와 같은 토큰을 씁니다.
 
-사이트: https://apt-watch.pages.dev (Cloudflare Pages, 배포 폴더 `site`)
+사이트: https://apt.namepf.com (Cloudflare Pages, 배포 폴더 `site`)
 
 ## 구성
 
