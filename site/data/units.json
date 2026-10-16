@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-16 07:42",
+ "generated": "2026-10-16 09:55",
  "items": [
   {
    "code": "seoul",
@@ -178,17 +178,17 @@
    "code": "chungnam",
    "rg": "충남",
    "org": "충청남도",
-   "title": "2026년 7월말 기준 미분양 주택현황",
-   "month": "2026-07",
+   "title": "2026년 8월말 기준 미분양 주택현황",
+   "month": "2026-08",
    "posted": null,
-   "post": "https://www.chungnam.go.kr/cnportal/bbs/B0000134/view.do?nttId=2182376&menuNo=500176&searchCnd=1&searchWrd=%EB%AF%B8%EB%B6%84%EC%96%91&pageUnit=10&pageIndex=1",
+   "post": "https://www.chungnam.go.kr/cnportal/bbs/B0000134/view.do?nttId=2184718&menuNo=500176&searchCnd=1&searchWrd=%EB%AF%B8%EB%B6%84%EC%96%91&pageUnit=10&pageIndex=1",
    "board": "https://www.chungnam.go.kr/cnportal/bbs/B0000134/list.do?menuNo=500176&searchCnd=1&searchWrd=%EB%AF%B8%EB%B6%84%EC%96%91",
    "file": "data/units/chungnam.xlsx",
    "ext": "xlsx",
-   "size": 621315,
-   "orig": "충청남도 미분양 주택 현황(2026. 7. 31.)_공개용.xlsx",
-   "key": "2026년 7월말 기준 미분양 주택현황|https://www.chungnam.go.kr/cnportal/cmmn/file/fileDown.do?menuNo=500176&atchFileId=45a0daf34cd746d38dfe4c012f957868&fileSn=1&bbsId=B0000134",
-   "fetched": "2026-10-11",
+   "size": 624792,
+   "orig": "충청남도 미분양 주택 현황(2026. 8. 31.)_공개용.xlsx",
+   "key": "2026년 8월말 기준 미분양 주택현황|https://www.chungnam.go.kr/cnportal/cmmn/file/fileDown.do?menuNo=500176&atchFileId=735e0951adfa44229bf8c67b526a66db&fileSn=1&bbsId=B0000134",
+   "fetched": "2026-10-16",
    "checked": "2026-10-16",
    "ok": true,
    "error": null
