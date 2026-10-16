@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-16 09:55",
+ "generated": "2026-10-16 17:43",
  "items": [
   {
    "code": "seoul",
@@ -55,8 +55,8 @@
    "key": "2026년 8월말 대구 공동주택 미분양 현황|https://www.daegu.go.kr/icms/cmm/fms/FileDown.do?atchFileId=FILE_000000000723546&fileSn=1",
    "fetched": "2026-10-11",
    "checked": "2026-10-16",
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='www.daegu.go.kr', port=443): Max retries exceeded with url: /build/index.do?menu_id=00001338&menu_link=/icms/bbs/selectBoardList.do&bbsId=BBS_00153&searchCnd=0&searchWrd=%EA%",
+   "ok": true,
+   "error": null,
    "note": "대구시 홈페이지가 해외 서버 접속을 자주 막아 아직 받지 못했습니다"
   },
   {
