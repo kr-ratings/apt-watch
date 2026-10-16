@@ -1,6 +1,12 @@
 {
- "generated": "2026-10-16 09:55",
+ "generated": "2026-10-16 17:00",
  "sources": {
+  "청약홈": {
+   "ok": true,
+   "rows": 155,
+   "fails": 0,
+   "fetched": 27
+  },
   "단지별 미분양(지자체)": {
    "ok": true,
    "regions": 10,
@@ -28,12 +34,6 @@
    "ok": true,
    "latest": "2026-08",
    "regions": 249
-  },
-  "청약홈": {
-   "ok": true,
-   "rows": 149,
-   "fails": 0,
-   "fetched": 15
   }
  }
 }
