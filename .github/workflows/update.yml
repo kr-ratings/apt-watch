@@ -1,50 +1,84 @@
 name: 수집 및 배포
-
 on:
   schedule:
-    - cron: "10 22 * * 0-4"   # 평일 07:10 KST (일~목 22:10 UTC)
+    - cron: "10 22 * * 0-4"   # 평일 07:10 KST (일~목 22:10 UTC) — 전체 수집
+    - cron: "40 11 * * 1-5"   # 평일 20:40 KST (월~금 11:40 UTC) — 청약 경쟁률 · 결과만 한 번 더
   workflow_dispatch:          # Actions 탭에서 'Run workflow'로 즉시 실행
     inputs:
       only:
-        description: "일부만 수집(예: units = 단지별 미분양 원문). 비우면 전체"
+        description: "일부만 수집(applyhome · unsold · supply · units 중 띄어쓰기로). 비우면 전체"
         required: false
         default: ""
   push:
     branches: [main]
     paths: ["collector/**", ".github/workflows/**"]
-
 permissions:
   contents: write
-
 concurrency:
   group: apt-watch
   cancel-in-progress: false
-
 jobs:
   update:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: 청약홈 · 통계누리에서 수집
+      - name: 수집 범위 정하기
         run: |
           pip install -r requirements.txt
-          python collector/collect.py ${{ github.event.inputs.only }}
+          ONLY="${{ github.event.inputs.only }}"
+          if [ "${{ github.event.schedule }}" = "40 11 * * 1-5" ]; then ONLY="applyhome"; fi
+          echo "ONLY=${ONLY:-applyhome unsold supply units}" >> "$GITHUB_ENV"
+          echo "이번 수집: ${ONLY:-전체}"
+
+      # 출처마다 단계를 나누고 시간 상한을 둔다. 한 곳이 응답 없이 붙잡고 있어도
+      # 나머지는 갱신해 커밋한다(10/14 아침처럼 전체가 1시간 멈췄다 취소되는 일 방지).
+      # 청약이 가장 자주 바뀌므로 맨 먼저 받는다.
+      - name: 청약홈 (분양 단지 · 경쟁률 · 청약 결과)
+        id: applyhome
+        if: ${{ contains(format(' {0} ', env.ONLY), ' applyhome ') }}
+        timeout-minutes: 15
+        continue-on-error: true
+        run: python collector/collect.py applyhome
+      - name: 통계누리 (미분양)
+        id: unsold
+        if: ${{ contains(format(' {0} ', env.ONLY), ' unsold ') }}
+        timeout-minutes: 10
+        continue-on-error: true
+        run: python collector/collect.py unsold
+      - name: 입주 · 수요 · 착공 · 인허가
+        id: supply
+        if: ${{ contains(format(' {0} ', env.ONLY), ' supply ') }}
+        timeout-minutes: 15
+        continue-on-error: true
+        run: python collector/collect.py supply
+      - name: 지자체 단지별 미분양 원문
+        id: units
+        if: ${{ contains(format(' {0} ', env.ONLY), ' units ') }}
+        timeout-minutes: 8
+        continue-on-error: true
+        run: python collector/collect.py units
 
       - name: 수집 결과 커밋 (Cloudflare Pages가 이 커밋으로 자동 배포)
+        if: ${{ !cancelled() }}
         run: |
+          T=()
+          [ "${{ steps.applyhome.outcome }}" = "failure" ] && T+=("청약홈")
+          [ "${{ steps.unsold.outcome }}" = "failure" ] && T+=("통계누리")
+          [ "${{ steps.supply.outcome }}" = "failure" ] && T+=("입주 · 수요")
+          [ "${{ steps.units.outcome }}" = "failure" ] && T+=("단지별 미분양(지자체)")
+          python collector/finalize.py "${T[@]}" || true
           git config user.name "apt-watch-bot"
           git config user.email "apt-watch-bot@users.noreply.github.com"
           git add site/data cache
           if git diff --cached --quiet; then
             echo "변경 없음"
           else
-            git commit -m "data: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST 갱신"
+            TAG=""; [ "$ONLY" = "applyhome" ] && TAG=" (청약)"
+            git commit -m "data: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST 갱신$TAG"
             git pull --rebase --autostash origin main
             git push
           fi
