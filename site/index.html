@@ -60,11 +60,11 @@
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-sans);font-size:14px;line-height:1.5}
 .wrap{max-width:1680px;margin:0 auto;padding-inline:16px;padding-block:24px 40px;display:flex;flex-direction:column;gap:20px}
 header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px}
-h1{font-size:1.45rem;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:1.45rem;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance;word-break:keep-all}
 .sub{color:var(--muted);font-size:.85rem;margin:2px 0 0;max-width:110ch;word-break:keep-all}
 .hright{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .sisters{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
-.updated{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);text-align:right}
+.updated{font-size:.78rem;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums;word-break:keep-all}
 .sister{font-size:.76rem;font-weight:600;color:var(--accent);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:3px 9px;white-space:nowrap}
 .sister:hover{background:var(--accent-soft)}
 .sister .sl{color:var(--muted);font-weight:500}
@@ -77,13 +77,14 @@ h2{font-size:.78rem;font-weight:600;letter-spacing:.08em;color:var(--muted);marg
 .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--surface);border:1px solid var(--line);border-radius:10px}
 .kpi{padding:16px 18px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .kpi + .kpi{border-left:1px solid var(--line)}
-.kpi .name{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.kpi .name b{font-weight:600;font-size:.95rem}
-.kpi .name span{font-size:.72rem;color:var(--muted)}
+.kpi .name{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 8px}
+.kpi .name b{font-weight:600;font-size:.95rem;white-space:nowrap}
+.kpi .name span{font-size:.72rem;color:var(--muted);margin-left:auto;text-align:right;word-break:keep-all}
 .kpi .val{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .kpi .num{font-family:var(--f-mono);font-size:1.9rem;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.kpi .num small{font-size:.9rem;color:var(--muted);margin-left:2px}
-.chg{font-family:var(--f-mono);font-size:.85rem;font-variant-numeric:tabular-nums}
+.kpi .num small{font-family:var(--f-sans);font-size:.9rem;color:var(--muted);margin-left:2px;letter-spacing:0}
+.chg{font-family:var(--f-mono);font-size:.85rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chg .lb{font-family:var(--f-sans);font-size:.8rem;margin-right:3px}
 .chg.up{color:var(--up)} .chg.down{color:var(--down)} .chg.flat{color:var(--flat)}
 .split{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.78rem;color:var(--muted)}
 .split b{font-family:var(--f-mono);font-weight:500;color:var(--fg);font-variant-numeric:tabular-nums}
@@ -98,7 +99,7 @@ h2{font-size:.78rem;font-weight:600;letter-spacing:.08em;color:var(--muted);marg
 .axis{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.68rem;color:var(--muted);margin-top:2px}
 .stack{display:flex;height:14px;border-radius:4px;overflow:hidden;background:var(--line);gap:1px}
 .stack span{display:block;height:100%;min-width:2px}
-.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.72rem;color:var(--muted);font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:8px;height:8px;border-radius:2px;display:inline-block}
 .placeholder{padding:22px;color:var(--muted);grid-column:1/-1}
@@ -157,12 +158,13 @@ tbody tr:last-child td{border-bottom:0}
 tr.row{cursor:pointer}
 tr.row:hover td{background:var(--accent-soft)}
 tr.row[aria-expanded="true"] td{background:var(--accent-soft);border-bottom-color:transparent}
-td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+td.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+th.num{text-align:right}
 td.nm{font-weight:600;white-space:normal;word-break:keep-all;min-width:12em;max-width:22em}
 td.nm small{display:block;font-weight:400;color:var(--muted);font-size:.72rem;margin-top:1px}
 td.rg small,td.bd small{display:block;color:var(--muted);font-size:.72rem}
 td.bd{white-space:normal;word-break:keep-all;min-width:8em;max-width:12em}
-.kd{font-family:var(--f-mono);font-size:.66rem;font-weight:500;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;line-height:1.4;margin-left:4px;vertical-align:1px}
+.kd{font-size:.66rem;font-weight:500;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;line-height:1.4;margin-left:4px;vertical-align:1px}
 .kd.pub{color:var(--pf);border-color:currentColor}
 .st{font-size:.74rem;font-weight:600;padding:2px 7px;border-radius:4px;border:1px solid currentColor;white-space:nowrap}
 .st.s1{color:var(--g-a1)} .st.s2{color:var(--g-a2)} .st.s3{color:var(--g-a3)} .st.s4{color:var(--g-b)} .st.s0{color:var(--muted);border-color:var(--line)}
@@ -299,13 +301,13 @@ footer .ct{white-space:nowrap}
 .smap-side .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;margin:8px 0 10px;padding:8px 0;border-block:1px solid var(--line)}
 .smap-side .stats div{display:flex;flex-direction:column}
 .smap-side .stats span{font-size:.72rem;color:var(--muted)}
-.smap-side .stats b{font-family:var(--f-mono);font-weight:600;font-size:.9rem}
+.smap-side .stats b{font-weight:600;font-size:.92rem;font-variant-numeric:tabular-nums}
 .smap-side .hint{color:var(--muted);margin:0 0 10px;word-break:keep-all}
 .smap-side ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 .smap-side .it{all:unset;box-sizing:border-box;display:block;width:100%;cursor:pointer;padding:7px 4px;border-bottom:1px solid var(--line)}
 .smap-side .it:hover,.smap-side .it[data-on="1"]{background:var(--accent-soft)}
 .smap-side .it b{font-weight:600;display:block;word-break:keep-all}
-.smap-side .it small{display:block;color:var(--muted);font-size:.74rem;font-family:var(--f-mono)}
+.smap-side .it small{display:block;color:var(--muted);font-size:.75rem;font-variant-numeric:tabular-nums}
 .smap-side .it .rw{display:flex;justify-content:space-between;gap:8px}
 .smap-side .it .rw em{font-style:normal;color:var(--muted);font-size:.74rem;white-space:nowrap}
 .map{position:relative;width:100%;min-width:0}
@@ -643,7 +645,7 @@ function renderKPIs(){
     const cell=(title,key,sub)=>{ const v=S.nation[key], last=v[n-1], prev=v[n-2], yr=v[0];
       const c=S.capital[key], l=S.local[key];
       return `<div class="kpi"><div class="name"><b>${title}</b><span>${ym(M[n-1])} · 전국 · ${sub}</span></div>
-        <div class="val"><span class="num">${fmt(last)}<small>호</small></span><span class="chg ${mvc(last-prev)}">전월 대비 ${sgn(last-prev)}</span><span class="chg ${mvc(last-yr)}">1년 전 대비 ${sgn(last-yr)}</span></div>
+        <div class="val"><span class="num">${fmt(last)}<small>호</small></span><span class="chg ${mvc(last-prev)}"><span class="lb">전월 대비</span>${sgn(last-prev)}</span><span class="chg ${mvc(last-yr)}"><span class="lb">1년 전 대비</span>${sgn(last-yr)}</span></div>
         ${sparkBox(key,v,M)}
         <div class="split"><span>수도권 <b>${fmt(c[n-1])}</b> <span class="chg ${mvc(c[n-1]-c[n-2])}">${sgn(c[n-1]-c[n-2])}</span></span><span>지방 <b>${fmt(l[n-1])}</b> <span class="chg ${mvc(l[n-1]-l[n-2])}">${sgn(l[n-1]-l[n-2])}</span></span></div></div>`; };
     cells.push(cell("미분양","total","민간 · 공공 합계"));
@@ -656,7 +658,7 @@ function renderKPIs(){
     const cap=rs.filter(r=>CAP.has(r.sido)), loc=rs.filter(r=>!CAP.has(r.sido));
     const all=rate(rs), N=rs.length||1, cols={"1순위 마감":"var(--g-a1)","순위 내 마감":"var(--g-a2)","접수 종료":"var(--g-a3)","미달":"var(--g-b)"};
     cells.push(`<div class="kpi"><div class="name"><b>최근 3개월 청약</b><span>민영 분양 · 모집공고 ${ym(cut.slice(0,7))} 이후 · 접수 끝난 단지</span></div>
-      <div class="val"><span class="num">${rs.length}<small>개 단지</small></span><span class="chg flat">1순위 평균 ${all==null?"–":all.toFixed(1)+" : 1"}</span></div>
+      <div class="val"><span class="num">${rs.length}<small>개 단지</small></span><span class="chg flat"><span class="lb">1순위 평균</span>${all==null?"–":all.toFixed(1)+" : 1"}</span></div>
       <div class="stack" role="img" aria-label="청약결과 분포">${Object.entries(grp).map(([k,v])=>v?`<span style="flex:${v};background:${cols[k]}" title="${k} ${v}개"></span>`:"").join("")}</div>
       <div class="legend">${Object.entries(grp).map(([k,v])=>`<span><i style="background:${cols[k]}"></i>${k} ${v} (${Math.round(v/N*100)}%)</span>`).join("")}</div>
       <div class="split"><span>수도권 1순위 <b>${rate(cap)==null?"–":rate(cap).toFixed(1)+" : 1"}</b> · ${cap.length}곳</span><span>지방 1순위 <b>${rate(loc)==null?"–":rate(loc).toFixed(1)+" : 1"}</b> · ${loc.length}곳</span></div></div>`);
