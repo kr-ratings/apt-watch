@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-18 12:29",
+ "generated": "2026-10-18 14:16",
  "items": [
   {
    "code": "seoul",
@@ -55,8 +55,8 @@
    "key": "2026년 8월말 대구 공동주택 미분양 현황|https://www.daegu.go.kr/icms/cmm/fms/FileDown.do?atchFileId=FILE_000000000723546&fileSn=1",
    "fetched": "2026-10-11",
    "checked": "2026-10-18",
-   "ok": true,
-   "error": null,
+   "ok": false,
+   "error": "HTTPSConnectionPool(host='www.daegu.go.kr', port=443): Max retries exceeded with url: /build/index.do?menu_id=00001338&menu_link=/icms/bbs/selectBoardList.do&bbsId=BBS_00153&searchCnd=0&searchWrd=%EA%",
    "note": "대구시 홈페이지가 해외 서버 접속을 자주 막아 아직 받지 못했습니다"
   },
   {
@@ -228,8 +228,9 @@
    "key": "2026년 9월말 미분양 주택 현황|https://gis.gyeongnam.go.kr/srp/unsold/52/20261016-181210808_345.xlsx",
    "fetched": "2026-10-18",
    "checked": "2026-10-18",
-   "ok": true,
-   "error": null
+   "ok": false,
+   "error": "HTTPSConnectionPool(host='gis.gyeongnam.go.kr', port=443): Max retries exceeded with url: /srp/moduleRetrivePagingMapper.do (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FA",
+   "note": null
   }
  ],
  "not_published": [
