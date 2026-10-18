@@ -44,6 +44,8 @@ jobs:
         if: ${{ contains(format(' {0} ', env.ONLY), ' applyhome ') }}
         timeout-minutes: 15
         continue-on-error: true
+        env:
+          VWORLD_KEY: ${{ secrets.VWORLD_KEY }}   # 단지 주소 → 좌표(국토교통부 브이월드). 없거나 접속이 안 되면 법정동 대표점으로
         run: python collector/collect.py applyhome
       - name: 통계누리 (미분양)
         id: unsold

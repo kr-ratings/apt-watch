@@ -312,9 +312,15 @@ def collect_applyhome(s, status) -> None:
     CACHE.mkdir(exist_ok=True)
     cache_f.write_text(json.dumps(cache, ensure_ascii=False, separators=(",", ":")))
     out.sort(key=lambda x: (x["notice"], x["pb"]), reverse=True)
+    try:                                   # 단지 위치(지도 확대용): 브이월드 주소 좌표 → 법정동 · 리 대표점 순
+        from geo import locate
+        geo_n = locate(out, s, CACHE, log)
+    except Exception as e:  # noqa: BLE001  위치를 못 정해도 청약 자료는 그대로 낸다
+        geo_n = {"error": str(e)[:200]}
+        log("단지 위치 실패", e)
     (DATA / "subscriptions.json").write_text(json.dumps({"generated": now_kst().strftime("%Y-%m-%d %H:%M"),
         "months": MONTHS_BACK, "rows": out}, ensure_ascii=False, separators=(",", ":")))
-    status["sources"]["청약홈"] = {"ok": fails <= max(3, len(lst) // 20), "rows": len(out), "fails": fails, "fetched": fetched}
+    status["sources"]["청약홈"] = {"ok": fails <= max(3, len(lst) // 20), "rows": len(out), "fails": fails, "fetched": fetched, "geo": geo_n}
     log("청약홈 완료", len(out), "단지, 실패", fails)
 
 
