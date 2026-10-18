@@ -1,13 +1,12 @@
 {
- "generated": "2026-10-18 14:16",
+ "generated": "2026-10-19 07:38",
  "sources": {
   "단지별 미분양(지자체)": {
    "ok": true,
-   "regions": 9,
+   "regions": 10,
    "of": 12,
    "failed": [
-    "충북",
-    "경남"
+    "충북"
    ]
   },
   "착공 · 인허가": {
@@ -34,7 +33,7 @@
    "ok": true,
    "rows": 376,
    "fails": 0,
-   "fetched": 32,
+   "fetched": 39,
    "geo": {
     "vworld": 0,
     "bjd": 353,
