@@ -9,11 +9,18 @@ from __future__ import annotations
 
 import html
 import json
+import time
 import re
 import urllib.parse
 from typing import Callable
 
-from collect import DATA, log, now_kst, req
+from collect import DATA, log, now_kst, req as _req
+
+
+def req(s, method, url, **kw):
+    """지자체 홈페이지는 해외(GitHub Actions)에서 느릴 때가 많아 짧게 기다리고 덜 재시도한다(단계 상한 8분 안에 끝나게)."""
+    kw.setdefault("timeout", 30); kw.setdefault("tries", 2); kw.setdefault("backoff", 2)
+    return _req(s, method, url, **kw)
 
 OUT = DATA / "units"
 Q = urllib.parse.quote
@@ -272,8 +279,13 @@ def collect_units(s, status) -> None:
     old = {x["code"]: x for x in json.loads(f.read_text()).get("items", [])} if f.exists() else {}
     now = now_kst()
     items, ok_n = [], 0
+    t0 = time.monotonic()
     for code, rg, org, fn, board in SOURCES:
         prev = old.get(code)
+        if time.monotonic() - t0 > 330 and prev:      # 시간이 모자라면 남은 곳은 직전 자료 그대로 두고 다음 수집 때 받는다
+            items.append(prev); ok_n += bool(prev.get("ok"))
+            log("단지별 미분양 건너뜀(시간)", rg)
+            continue
         try:
             p = fn(s)
             key = p["title"] + "|" + p["url"]
@@ -281,7 +293,7 @@ def collect_units(s, status) -> None:
                 items.append(dict(prev, board=board, checked=now.strftime("%Y-%m-%d"), ok=True, error=None))
                 ok_n += 1
                 continue
-            r = req(s, "GET", p["url"], timeout=120, headers={"Referer": p["post"]})
+            r = req(s, "GET", p["url"], timeout=60, headers={"Referer": p["post"]})
             body, name = r.content, cd_name(r)
             if not re.search(r"[가-힣]", name) and p.get("name"):     # 저장 이름이 일련번호뿐이면 게시판에 적힌 이름을 쓴다
                 name = p["name"]
