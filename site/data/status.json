@@ -1,14 +1,6 @@
 {
- "generated": "2026-10-18 12:29",
+ "generated": "2026-10-18 13:51",
  "sources": {
-  "단지별 미분양(지자체)": {
-   "ok": true,
-   "regions": 11,
-   "of": 12,
-   "failed": [
-    "충북"
-   ]
-  },
   "착공 · 인허가": {
    "ok": true,
    "through": "2026-08"
@@ -33,7 +25,21 @@
    "ok": true,
    "rows": 376,
    "fails": 0,
-   "fetched": 457
+   "fetched": 32,
+   "geo": {
+    "vworld": 0,
+    "bjd": 353,
+    "none": 23
+   }
+  },
+  "단지별 미분양(지자체)": {
+   "ok": false,
+   "regions": 11,
+   "of": 12,
+   "failed": [
+    "충북"
+   ],
+   "error": "이번 수집이 끝까지 진행되지 못함(원출처 응답 지연 등) · 직전 값 표시"
   }
  }
 }
