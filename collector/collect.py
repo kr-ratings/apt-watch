@@ -30,7 +30,7 @@ AH = "https://www.applyhome.co.kr"
 MOLIT = "https://stat.molit.go.kr"
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
-MONTHS_BACK = int(os.environ.get("AH_MONTHS", "6"))      # 모집공고 기준 최근 N개월
+MONTHS_BACK = int(os.environ.get("AH_MONTHS", "13"))     # 모집공고 기준 최근 N개월(화면 '1년' 필터를 빈틈없이 채우려고 13개월치)
 UNSOLD_MONTHS = int(os.environ.get("UNSOLD_MONTHS", "13"))
 PY = 3.305785
 
