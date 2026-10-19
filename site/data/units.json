@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-19 07:38",
+ "generated": "2026-10-19 11:33",
  "items": [
   {
    "code": "seoul",
@@ -55,8 +55,8 @@
    "key": "2026년 8월말 대구 공동주택 미분양 현황|https://www.daegu.go.kr/icms/cmm/fms/FileDown.do?atchFileId=FILE_000000000723546&fileSn=1",
    "fetched": "2026-10-11",
    "checked": "2026-10-19",
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='www.daegu.go.kr', port=443): Max retries exceeded with url: /build/index.do?menu_id=00001338&menu_link=/icms/bbs/selectBoardList.do&bbsId=BBS_00153&searchCnd=0&searchWrd=%EA%",
+   "ok": true,
+   "error": null,
    "note": "대구시 홈페이지가 해외 서버 접속을 자주 막아 아직 받지 못했습니다"
   },
   {
@@ -113,8 +113,9 @@
    "key": "울산광역시 미분양 주택 통계자료(2026. 8월)|https://www.ulsan.go.kr/u/enc/media/bbsFileDown.do?bbsId=BBS_0000000000000102&atchFileId=6vwkZxC2phVW5QBFUW7bb2EmhQf%2FdgGpOyvi84KeJ9U%3D&fileSn=QHy5PbVvoXXAx1%2B3dKbTsQ%3D%3D",
    "fetched": "2026-10-11",
    "checked": "2026-10-19",
-   "ok": true,
-   "error": null
+   "ok": false,
+   "error": "HTTPSConnectionPool(host='www.ulsan.go.kr', port=443): Read timed out. (read timeout=30)",
+   "note": null
   },
   {
    "code": "gyeonggi",
@@ -132,8 +133,9 @@
    "key": "경기도미분양아파트현황(2026년 08월 31일기준)|https://www.gg.go.kr/cmmn/download.do?idx=902960",
    "fetched": "2026-10-11",
    "checked": "2026-10-19",
-   "ok": true,
-   "error": null
+   "ok": false,
+   "error": "HTTPSConnectionPool(host='www.gg.go.kr', port=443): Max retries exceeded with url: /ajax/board/getList.do (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.gg.go.kr', port=443) at 0x7f5f5eecde",
+   "note": null
   },
   {
    "code": "gangwon",
@@ -228,8 +230,8 @@
    "key": "2026년 9월말 미분양 주택 현황|https://gis.gyeongnam.go.kr/srp/unsold/52/20261016-181210808_345.xlsx",
    "fetched": "2026-10-18",
    "checked": "2026-10-19",
-   "ok": true,
-   "error": null,
+   "ok": false,
+   "error": "HTTPSConnectionPool(host='gis.gyeongnam.go.kr', port=443): Max retries exceeded with url: /srp/moduleRetrivePagingMapper.do (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FA",
    "note": null
   }
  ],
