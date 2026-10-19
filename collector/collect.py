@@ -318,6 +318,13 @@ def collect_applyhome(s, status) -> None:
     except Exception as e:  # noqa: BLE001  위치를 못 정해도 청약 자료는 그대로 낸다
         geo_n = {"error": str(e)[:200]}
         log("단지 위치 실패", e)
+    try:                                   # 모집공고문에서 읽어 둔 발코니 확장비 · 중도금 조건(cache/notice.json)을 붙인다
+        from notice import attach
+        nf = CACHE / "notice.json"
+        if nf.exists():
+            attach(out, json.loads(nf.read_text()))
+    except Exception as e:  # noqa: BLE001
+        log("공고문 판독값 붙이기 실패", e)
     (DATA / "subscriptions.json").write_text(json.dumps({"generated": now_kst().strftime("%Y-%m-%d %H:%M"),
         "months": MONTHS_BACK, "rows": out}, ensure_ascii=False, separators=(",", ":")))
     status["sources"]["청약홈"] = {"ok": fails <= max(3, len(lst) // 20), "rows": len(out), "fails": fails, "fetched": fetched, "geo": geo_n}
@@ -407,7 +414,7 @@ def main():
     st_f = DATA / "status.json"
     status = {"generated": now_kst().strftime("%Y-%m-%d %H:%M"), "sources": {}}
     s = sess()
-    only = sys.argv[1:] or ["unsold", "supply", "applyhome", "units"]
+    only = sys.argv[1:] or ["unsold", "supply", "applyhome", "notice", "units"]
     if "unsold" in only:
         collect_unsold(s, status)
     if "supply" in only:
@@ -415,6 +422,9 @@ def main():
         collect_supply(s, status)
     if "applyhome" in only:
         collect_applyhome(s, status)
+    if "notice" in only:                   # 모집공고문(PDF) → 발코니 확장비 · 중도금 대출 조건
+        from notice import collect_notice
+        collect_notice(s, status, log)
     if "units" in only:                    # 지자체 공개 단지별(업체별) 미분양 원문
         from units import collect_units
         collect_units(s, status)

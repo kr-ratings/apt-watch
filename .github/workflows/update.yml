@@ -7,7 +7,7 @@ on:
   workflow_dispatch:          # Actions 탭에서 'Run workflow'로 즉시 실행
     inputs:
       only:
-        description: "일부만 수집(applyhome · unsold · supply · units 중 띄어쓰기로). 비우면 전체"
+        description: "일부만 수집(applyhome · notice · unsold · supply · units 중 띄어쓰기로). 비우면 전체"
         required: false
         default: ""
   push:
@@ -32,8 +32,8 @@ jobs:
           pip install -r requirements.txt
           ONLY="${{ github.event.inputs.only }}"
           # 아침(07:10) 예약만 전체 수집, 오후 · 저녁 예약은 청약만
-          if [ -n "${{ github.event.schedule }}" ] && [ "${{ github.event.schedule }}" != "10 22 * * 0-4" ]; then ONLY="applyhome"; fi
-          echo "ONLY=${ONLY:-applyhome unsold supply units}" >> "$GITHUB_ENV"
+          if [ -n "${{ github.event.schedule }}" ] && [ "${{ github.event.schedule }}" != "10 22 * * 0-4" ]; then ONLY="applyhome notice"; fi
+          echo "ONLY=${ONLY:-applyhome notice unsold supply units}" >> "$GITHUB_ENV"
           echo "이번 수집: ${ONLY:-전체}"
 
       # 출처마다 단계를 나누고 시간 상한을 둔다. 한 곳이 응답 없이 붙잡고 있어도
@@ -47,6 +47,12 @@ jobs:
         env:
           VWORLD_KEY: ${{ secrets.VWORLD_KEY }}   # 단지 주소 → 좌표(국토교통부 브이월드). 없거나 접속이 안 되면 법정동 대표점으로
         run: python collector/collect.py applyhome
+      - name: 모집공고문 (발코니 확장비 · 중도금 대출 조건)
+        id: notice
+        if: ${{ contains(format(' {0} ', env.ONLY), ' notice ') }}
+        timeout-minutes: 9
+        continue-on-error: true
+        run: python collector/collect.py notice   # 새 공고부터 차례로, 한 번에 약 5분까지만 읽고 나머지는 다음 수집 때
       - name: 통계누리 (미분양)
         id: unsold
         if: ${{ contains(format(' {0} ', env.ONLY), ' unsold ') }}
@@ -71,6 +77,7 @@ jobs:
         run: |
           T=()
           [ "${{ steps.applyhome.outcome }}" = "failure" ] && T+=("청약홈")
+          [ "${{ steps.notice.outcome }}" = "failure" ] && T+=("모집공고문")
           [ "${{ steps.unsold.outcome }}" = "failure" ] && T+=("통계누리")
           [ "${{ steps.supply.outcome }}" = "failure" ] && T+=("입주 · 수요")
           [ "${{ steps.units.outcome }}" = "failure" ] && T+=("단지별 미분양(지자체)")
@@ -81,7 +88,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "변경 없음"
           else
-            TAG=""; [ "$ONLY" = "applyhome" ] && TAG=" (청약)"
+            TAG=""; [ "$ONLY" = "applyhome notice" ] && TAG=" (청약)"
             git commit -m "data: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST 갱신$TAG"
             git pull --rebase --autostash origin main
             git push
