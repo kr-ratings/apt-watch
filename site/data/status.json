@@ -1,22 +1,11 @@
 {
- "generated": "2026-10-19 12:01",
+ "generated": "2026-10-19 12:37",
  "sources": {
-  "모집공고문": {
-   "ok": true,
-   "read_now": 7,
-   "miss_now": 0,
-   "done": 344,
-   "rows": 376,
-   "bal": 261,
-   "mid": 278
-  },
   "단지별 미분양(지자체)": {
    "ok": true,
-   "regions": 8,
+   "regions": 10,
    "of": 12,
    "failed": [
-    "울산",
-    "경기",
     "충북",
     "경남"
    ]
@@ -40,6 +29,15 @@
    "ok": true,
    "latest": "2026-08",
    "regions": 249
+  },
+  "모집공고문": {
+   "ok": true,
+   "read_now": 5,
+   "miss_now": 0,
+   "done": 344,
+   "rows": 376,
+   "bal": 261,
+   "mid": 279
   },
   "청약홈": {
    "ok": true,
