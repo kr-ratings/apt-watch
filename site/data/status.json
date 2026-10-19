@@ -1,6 +1,26 @@
 {
- "generated": "2026-10-19 12:37",
+ "generated": "2026-10-19 13:38",
  "sources": {
+  "모집공고문": {
+   "ok": true,
+   "read_now": 0,
+   "miss_now": 0,
+   "done": 344,
+   "rows": 376,
+   "bal": 261,
+   "mid": 279
+  },
+  "청약홈": {
+   "ok": true,
+   "rows": 376,
+   "fails": 0,
+   "fetched": 39,
+   "geo": {
+    "vworld": 0,
+    "bjd": 353,
+    "none": 23
+   }
+  },
   "단지별 미분양(지자체)": {
    "ok": true,
    "regions": 10,
@@ -29,26 +49,6 @@
    "ok": true,
    "latest": "2026-08",
    "regions": 249
-  },
-  "모집공고문": {
-   "ok": true,
-   "read_now": 5,
-   "miss_now": 0,
-   "done": 344,
-   "rows": 376,
-   "bal": 261,
-   "mid": 279
-  },
-  "청약홈": {
-   "ok": true,
-   "rows": 376,
-   "fails": 0,
-   "fetched": 39,
-   "geo": {
-    "vworld": 0,
-    "bjd": 353,
-    "none": 23
-   }
   }
  }
 }
