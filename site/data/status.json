@@ -1,14 +1,14 @@
 {
- "generated": "2026-10-19 11:43",
+ "generated": "2026-10-19 11:49",
  "sources": {
   "모집공고문": {
    "ok": true,
-   "read_now": 57,
-   "miss_now": 6,
-   "done": 201,
+   "read_now": 76,
+   "miss_now": 10,
+   "done": 277,
    "rows": 376,
-   "bal": 161,
-   "mid": 173
+   "bal": 212,
+   "mid": 227
   },
   "단지별 미분양(지자체)": {
    "ok": true,
