@@ -15,7 +15,7 @@ import re
 AMT = r"\d{1,3}(?:,\d{3}){1,2}"
 # 59A · 84 · 84A/B · 84B1 · 147P · PH184B · 182PH · 059.9986A · 63A, 63B
 TY1 = r"(?:PH|P)?\d{2,3}(?:\.\d{1,4})?[A-Z]{0,2}\d?(?:-\d)?(?:/[A-Z]\d?)*(?:PH|P|T)?"
-TYS = rf"{TY1}(?:\s*,\s*{TY1})*"
+TYS = rf"{TY1}(?:\s*,\s*(?:{TY1}|[A-Z]{{1,2}}\d?(?![\w])))*"   # '84A,A1'처럼 뒤 타입의 면적을 줄여 쓴 경우 포함
 ROW = re.compile(rf"(?<![\w.,\-])({TYS})\s+({AMT})\s+({AMT})(?![\d,])")
 BAL_HEAD = re.compile(r"발코니\s*확장")
 ALL_ROW = re.compile(rf"(?:전\s*세대|전\s*타입|전체\s*타입|공통)[^\d■]{{0,70}}?({AMT})\s+({AMT})(?![\d,])")
@@ -91,6 +91,8 @@ def _horizontal(win: str) -> dict[str, int]:
                 good = sum(0.04 <= b / a <= 0.35 for a, b in zip(amts, nxt)) >= max(1, len(tys) // 2)
             elif re.search(r"금액|공사비|대금|공급|확장", " ".join(lab)):
                 good = True
+            if good and not re.search(r"확장", " ".join(lab) + " " + " ".join(tk[max(0, i - 14):i])):
+                good = False                 # 바로 앞뒤에 '확장'이 없으면 옵션 품목 표일 수 있다
             if good:
                 for t, a in zip(tys, amts):
                     out.setdefault(t, a)
@@ -111,7 +113,9 @@ def balcony(text: str) -> tuple[dict | None, str | None]:
         if "에어컨" in s[m.start():m.end() + 40]:
             continue
         win = s[m.start():m.start() + 1600]
-        st = STOP.search(win, 60)
+        # '발코니 확장 및 추가선택품목' 같은 장 제목은 옵션 표의 시작으로 보지 않는다
+        probe = re.sub(r"발코니\s*확장(?:\s*공사)?\s*(?:및|,|·|/)\s*추가\s*선택\s*품목", lambda x: "#" * len(x.group(0)), win)
+        st = STOP.search(probe, 6)
         if st:
             win = win[:st.start()]
         got = False
@@ -119,7 +123,11 @@ def balcony(text: str) -> tuple[dict | None, str | None]:
             a, b = _num(r.group(2)), _num(r.group(3))
             if not ok(a, b):
                 continue
+            first = None
             for ty in re.split(r"\s*,\s*", r.group(1)):
+                if not re.match(r"(?:PH|P)?\d", ty) and first:      # '84A,A1'의 A1 → 84A1
+                    ty = re.match(r"(?:PH|P)?0*\d{2,3}", first).group(0) + ty
+                first = first or ty
                 ar = _area(ty)
                 if ar and 20 <= ar <= 330:
                     got = True
@@ -143,11 +151,12 @@ def balcony(text: str) -> tuple[dict | None, str | None]:
 
 
 MID = {
-    "무이자": re.compile(r"중도금\s*(?:대출\s*)?(?:이자\s*)?(?:\(\s*)?무\s*이자|무이자\s*(?:조건|대출|융자)"),
+    "무이자": re.compile(r"중도금\s*(?:대출\s*)?(?:이자\s*)?(?:\(\s*)?무\s*이자|무이자\s*(?:가|를|로)?\s*(?:조건|대출|융자|적용|\()"
+                      r"|중도금\s*대출\s*(?:알선\s*)?조건은\s*(?:중도금\s*)?무\s*이자"),
     "후불제": re.compile(r"이자\s*후\s*불\s*제?|후불\s*이자"),
     "자납": re.compile(r"이자\s*(?:자납|자부담)|자납\s*조건"),
 }
-NEG_AFTER = re.compile(r"^.{0,22}?(?:적용\s*되?\s*지\s*(?:아니|않)|아니(?:하|며|함)|않(?:으|습|는)|불가|에\s*준하|또는|대신)")
+NEG_AFTER = re.compile(r"^.{0,22}?(?:적용\s*되?\s*지\s*(?:아니|않)|아니(?:하|며|함)|않(?:으|습|는)|불가|에\s*준하|또는|대신|요구|판촉|상응)")
 NEG_BEFORE = re.compile(r"(?:또는|않|아니|불가|경우에도|대신하여|이\s*아닌|외의)[^.]{0,12}$")
 
 
@@ -165,10 +174,15 @@ def midloan(text: str) -> tuple[str | None, dict]:
         if n:
             cnt[k] = n
     if not cnt:
+        # '중도금 대출이자는 사업주체가 부담' 처럼 무이자라는 말 없이 적은 경우
+        if re.search(r"중도금\s*대출\s*이자(?:는|를)?[^.]{0,40}?사업\s*주체(?:가|에서)\s*(?:전액\s*)?부담", s):
+            return "무이자", {"무이자(부담)": 1}
         return None, cnt
     # 일부 회차만 무이자(나머지 후불제)인 경우가 있어, 둘 다 나오면 '무이자'라고 단정하지 않는다
     if "무이자" in cnt and "후불제" in cnt:
-        part = re.search(r"\d\s*(?:~|∼|-|～)\s*\d\s*(?:회|차)[^.]{0,20}무이자|무이자[^.]{0,30}\d\s*(?:~|∼|-|～)\s*\d\s*(?:회|차)", s)
+        part = re.search(r"\d\s*(?:~|∼|-|～)\s*\d\s*(?:회|차)[^.]{0,20}무이자|무이자[^.]{0,30}\d\s*(?:~|∼|-|～)\s*\d\s*(?:회|차)"
+                         r"|(?:주택형|타입)은?\s*(?:중도금\s*)?(?:대출\s*)?무\s*이자[^.]{0,80}(?:주택형|타입)은?\s*(?:중도금\s*)?(?:대출\s*)?(?:이자\s*)?후\s*불"
+                         r"|(?:주택형|타입)은?\s*(?:중도금\s*)?(?:대출\s*)?(?:이자\s*)?후\s*불[^.]{0,80}(?:주택형|타입)은?\s*(?:중도금\s*)?(?:대출\s*)?무\s*이자", s)
         if part:
             return "일부 무이자", cnt
         return ("무이자" if cnt["무이자"] > cnt["후불제"] else "후불제"), cnt
