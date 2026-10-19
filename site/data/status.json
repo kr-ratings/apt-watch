@@ -1,6 +1,15 @@
 {
- "generated": "2026-10-19 11:33",
+ "generated": "2026-10-19 11:37",
  "sources": {
+  "모집공고문": {
+   "ok": true,
+   "read_now": 62,
+   "miss_now": 5,
+   "done": 144,
+   "rows": 376,
+   "bal": 119,
+   "mid": 125
+  },
   "단지별 미분양(지자체)": {
    "ok": true,
    "regions": 8,
@@ -31,15 +40,6 @@
    "ok": true,
    "latest": "2026-08",
    "regions": 249
-  },
-  "모집공고문": {
-   "ok": true,
-   "read_now": 82,
-   "miss_now": 6,
-   "done": 82,
-   "rows": 376,
-   "bal": 70,
-   "mid": 71
   },
   "청약홈": {
    "ok": true,
