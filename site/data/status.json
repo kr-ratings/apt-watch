@@ -1,32 +1,11 @@
 {
- "generated": "2026-10-23 21:06",
+ "generated": "2026-10-26 07:38",
  "sources": {
-  "모집공고문": {
-   "ok": true,
-   "read_now": 0,
-   "miss_now": 1,
-   "done": 351,
-   "rows": 384,
-   "bal": 266,
-   "mid": 285
-  },
-  "청약홈": {
-   "ok": true,
-   "rows": 384,
-   "fails": 0,
-   "fetched": 35,
-   "geo": {
-    "vworld": 0,
-    "bjd": 361,
-    "none": 23
-   }
-  },
   "단지별 미분양(지자체)": {
    "ok": true,
-   "regions": 10,
+   "regions": 11,
    "of": 12,
    "failed": [
-    "부산",
     "충북"
    ]
   },
@@ -43,12 +22,32 @@
    "kapt": "2026.10.23",
    "plan_basis": "2026년 6월 말",
    "pop": "2026-09",
-   "notices": 748
+   "notices": 749
   },
   "통계누리": {
    "ok": true,
    "latest": "2026-08",
    "regions": 249
+  },
+  "모집공고문": {
+   "ok": true,
+   "read_now": 0,
+   "miss_now": 32,
+   "done": 351,
+   "rows": 384,
+   "bal": 266,
+   "mid": 285
+  },
+  "청약홈": {
+   "ok": true,
+   "rows": 384,
+   "fails": 0,
+   "fetched": 39,
+   "geo": {
+    "vworld": 0,
+    "bjd": 361,
+    "none": 23
+   }
   }
  }
 }
