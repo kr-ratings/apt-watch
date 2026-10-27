@@ -81,6 +81,10 @@ h2{font-size:.78rem;font-weight:600;letter-spacing:.08em;color:var(--muted);marg
 .kpi .name{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 8px}
 .kpi .name b{font-weight:600;font-size:.95rem;white-space:nowrap}
 .kpi .name span{font-size:.72rem;color:var(--muted);margin-left:auto;text-align:right;word-break:keep-all}
+.kpi .name{align-items:center}
+.kpi .ksub{font-size:.72rem;color:var(--muted);margin-top:-4px;word-break:keep-all}
+.seg.xs button{padding:3px 8px;font-size:.74rem}
+.seg button:disabled{opacity:.4;cursor:default}
 .kpi .val{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .kpi .num{font-family:var(--f-mono);font-size:1.9rem;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .kpi .num small{font-family:var(--f-sans);font-size:.9rem;color:var(--muted);margin-left:2px;letter-spacing:0}
@@ -712,27 +716,35 @@ const stOrd=s=>({"1순위 마감":0,"순위 내 마감":1,"접수 종료":2,"미
 const unSido=s=>UNSIDO.has(s)?s:((s==="광주"||s==="전남")&&UNSIDO.has("전남광주")?"전남광주":s);
 const unOf=r=>{ const k=unSido(r.sido)+"|"+(r.sgg||""); return UNMAP.get(k)||null; };
 
-/* ── 요약 ── */
+/* ── 요약 ── 미분양 · 준공 후는 1년 · 3년 · 5년, 최근 청약 현황은 3 · 6 · 12개월을 칸마다 따로 고른다 */
+const kp={total:12,done:12,sub:3};
+const kpSeg=(key,opts,cur,label,dis=()=>false)=>`<div class="seg xs" role="group" aria-label="${label}" data-kp="${key}">${opts.map(([v,t])=>`<button type="button" data-v="${v}" aria-pressed="${v===cur}"${dis(v)?' disabled title="자료 준비 중"':""}>${t}</button>`).join("")}</div>`;
+function unSeries(per){ // 최근 per개월 + 1개월(비교 시점) — 1년은 시 · 군 · 구 표와 같은 13개월, 3 · 5년은 요약용 장기 자료
+  if(per<=12||!UN.long||!UN.long.months) return {M:UN.months,S:UN.summary};
+  const L=UN.long, n=Math.min(L.months.length,per+1), cut=a=>a.slice(-n);
+  return {M:cut(L.months),S:Object.fromEntries(["nation","capital","local"].map(g=>[g,{total:cut(L[g].total),done:cut(L[g].done)}]))}; }
 function renderKPIs(){
   const el=$("#kpis"); const cells=[];
   if(UN&&UN.months&&UN.months.length){
-    const M=UN.months, n=M.length, S=UN.summary;
-    const cell=(title,key,sub)=>{ const v=S.nation[key], last=v[n-1], prev=v[n-2], yr=v[0];
-      const c=S.capital[key], l=S.local[key];
-      return `<div class="kpi"><div class="name"><b>${title}</b><span>${ym(M[n-1])} · 전국 · ${sub}</span></div>
-        <div class="val"><span class="num">${fmt(last)}<small>호</small></span><span class="chg ${mvc(last-prev)}"><span class="lb">전월 대비</span>${sgn(last-prev)}</span><span class="chg ${mvc(last-yr)}"><span class="lb">1년 전 대비</span>${sgn(last-yr)}</span></div>
+    const longN=UN.long&&UN.long.months?UN.long.months.length:0;
+    const cell=(title,key,sub)=>{ const per=kp[key], {M,S}=unSeries(per), n=M.length, v=S.nation[key], last=v[n-1], prev=v[n-2], yr=v[0];
+      const c=S.capital[key], l=S.local[key], yl=Math.round((n-1)/12);
+      return `<div class="kpi"><div class="name"><b>${title}</b>${kpSeg(key,[[12,"1년"],[36,"3년"],[60,"5년"]],per,`${title} 추이 기간`,x=>x>12&&longN<x+1)}</div>
+        <div class="ksub">${ym(M[n-1])} · 전국 · ${sub}</div>
+        <div class="val"><span class="num">${fmt(last)}<small>호</small></span><span class="chg ${mvc(last-prev)}"><span class="lb">전월 대비</span>${sgn(last-prev)}</span><span class="chg ${mvc(last-yr)}"><span class="lb">${yl}년 전 대비</span>${sgn(last-yr)}</span></div>
         ${sparkBox(key,v,M)}
         <div class="split"><span>수도권 <b>${fmt(c[n-1])}</b> <span class="chg ${mvc(c[n-1]-c[n-2])}">${sgn(c[n-1]-c[n-2])}</span></span><span>지방 <b>${fmt(l[n-1])}</b> <span class="chg ${mvc(l[n-1]-l[n-2])}">${sgn(l[n-1]-l[n-2])}</span></span></div></div>`; };
     cells.push(cell("미분양","total","민간 · 공공 합계"));
     cells.push(cell("준공 후 미분양","done","공사완료 후"));
   } else cells.push(`<div class="kpi"><div class="placeholder">미분양 통계를 불러오지 못했습니다. 다음 수집 때 다시 표시됩니다.</div></div>`);
   if(SUB&&SUB.rows){
-    const cut=monthsAgo(3), rs=SUB.rows.filter(r=>r.kind==="민영"&&r.sale==="분양주택"&&r.notice>=cut&&r.status&&r.status!=="접수 전"&&r.status!=="접수 중");
+    const per=kp.sub, cut=monthsAgo(per), rs=SUB.rows.filter(r=>r.kind==="민영"&&r.sale==="분양주택"&&r.notice>=cut&&r.status&&r.status!=="접수 전"&&r.status!=="접수 중");
     const grp={"1순위 마감":0,"순위 내 마감":0,"접수 종료":0,"미달":0}; rs.forEach(r=>grp[stKey(r.status)]=(grp[stKey(r.status)]||0)+1);
     const rate=a=>{ const s=a.reduce((x,r)=>x+(r.sup||0),0), q=a.reduce((x,r)=>x+(r.r1||0),0); return s?q/s:null; };
     const cap=rs.filter(r=>CAP.has(r.sido)), loc=rs.filter(r=>!CAP.has(r.sido));
     const all=rate(rs), N=rs.length||1, cols={"1순위 마감":"var(--g-a1)","순위 내 마감":"var(--g-a2)","접수 종료":"var(--g-a3)","미달":"var(--g-b)"};
-    cells.push(`<div class="kpi"><div class="name"><b>최근 3개월 청약</b><span>민영 분양 · 모집공고 ${ym(cut.slice(0,7))} 이후 · 접수 끝난 단지</span></div>
+    cells.push(`<div class="kpi"><div class="name"><b>최근 청약 현황</b>${kpSeg("sub",[[3,"3개월"],[6,"6개월"],[12,"12개월"]],per,"최근 청약 현황 기간")}</div>
+      <div class="ksub">민영 분양 · 모집공고 ${ym(cut.slice(0,7))} 이후 · 접수 끝난 단지</div>
       <div class="val"><span class="num">${rs.length}<small>개 단지</small></span><span class="chg flat"><span class="lb">1순위 평균</span>${all==null?"–":all.toFixed(1)+" : 1"}</span></div>
       <div class="stack" role="img" aria-label="청약결과 분포">${Object.entries(grp).map(([k,v])=>v?`<span style="flex:${v};background:${cols[k]}" title="${k} ${v}개"></span>`:"").join("")}</div>
       <div class="legend">${Object.entries(grp).map(([k,v])=>`<span><i style="background:${cols[k]}"></i>${k} ${v} (${Math.round(v/N*100)}%)</span>`).join("")}</div>
@@ -742,6 +754,8 @@ function renderKPIs(){
   $("#sum-note").textContent=UN&&UN.months?`미분양은 국토교통부 ${ym(UN.months[UN.months.length-1])}월분(매월 말 공표), 청약은 청약홈 기준`:"";
 }
 function monthsAgo(n){ const d=new Date(); d.setMonth(d.getMonth()-n); return d.toISOString().slice(0,10); }
+$("#kpis").addEventListener("click",e=>{ const b=e.target.closest("[data-kp] button"); if(!b||b.disabled) return; const g=b.closest("[data-kp]").dataset.kp; kp[g]=+b.dataset.v; renderKPIs();
+  const nb=document.querySelector(`#kpis [data-kp="${g}"] button[data-v="${b.dataset.v}"]`); if(nb) nb.focus(); });
 
 /* ── 청약 표 ── */
 const ss={per:3,kind:"민영",sido:"all",res:"all",q:"",sort:"notice",dir:-1,open:new Set()};

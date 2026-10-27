@@ -31,7 +31,8 @@ MOLIT = "https://stat.molit.go.kr"
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
 MONTHS_BACK = int(os.environ.get("AH_MONTHS", "13"))     # 모집공고 기준 최근 N개월(화면 '1년' 필터를 빈틈없이 채우려고 13개월치)
-UNSOLD_MONTHS = int(os.environ.get("UNSOLD_MONTHS", "13"))
+UNSOLD_MONTHS = int(os.environ.get("UNSOLD_MONTHS", "13"))   # 시 · 군 · 구 표 · 지도(최근 13개월)
+UNSOLD_LONG = int(os.environ.get("UNSOLD_LONG", "61"))       # 요약 추이(전국 · 수도권 · 지방, 최근 5년 + 1개월)
 PY = 3.305785
 
 
@@ -346,19 +347,60 @@ def molit(s, fid, style, start, end):
     return j["data"]
 
 
-def collect_unsold(s, status) -> None:
-    end = now_kst().date().replace(day=1)
-    y, m = end.year, end.month - UNSOLD_MONTHS - 1
+def _start(end, back):
+    y, m = end.year, end.month - back - 1
     while m <= 0:
         y, m = y - 1, m + 12
-    start = f"{y}{m:02d}"
-    try:
-        tot = molit(s, "2082", "128", start, end.strftime("%Y%m"))
-        done = molit(s, "5328", "1", start, end.strftime("%Y%m"))
+    return f"{y}{m:02d}"
+
+
+def _long_summary(tot, done) -> dict:
+    """요약 칸 1년 · 3년 · 5년 추이용: 시 · 도 합계만으로 전국 · 수도권 · 지방 미분양과 준공 후 미분양을 월별로 만든다."""
+    months = sorted({x["0"] for x in tot})[-UNSOLD_LONG:]
+    mi = {mm: i for i, mm in enumerate(months)}
+    cap = {"서울", "인천", "경기"}
+    z = lambda: [None] * len(months)
+    out = {k: {"total": z(), "done": z()} for k in ("nation", "capital", "local")}
+
+    def add(arr, i, v):
+        if v is not None:
+            arr[i] = (arr[i] or 0) + v
+    for x in tot:
+        if x["0"] in mi and x["2"] in ("계", "합계") and x["1"] not in ("전국", "계", "합계"):
+            v = num(x["3"]); i = mi[x["0"]]
+            add(out["nation"]["total"], i, v); add(out["capital" if x["1"] in cap else "local"]["total"], i, v)
+    for x in done:
+        if x["0"] not in mi or x["3"] != "계" or x["4"] != "계":
+            continue
+        v, i = num(x["5"]), mi[x["0"]]
+        if x["1"] == "전국":
+            out["nation"]["done"][i] = v
+        elif x["2"] in ("계", "합계"):
+            add(out["capital" if x["1"] in cap else "local"]["done"], i, v)
+    return {"months": months, **out}
+
+
+def collect_unsold(s, status) -> None:
+    end = now_kst().date().replace(day=1)
+    long = None
+    try:   # 5년 치를 한 번에 받는다(요약 추이용). 안 되면 예전처럼 13개월만 받고 5년 추이는 직전 값을 둔다
+        tot = molit(s, "2082", "128", _start(end, UNSOLD_LONG), end.strftime("%Y%m"))
+        done = molit(s, "5328", "1", _start(end, UNSOLD_LONG), end.strftime("%Y%m"))
+        long = _long_summary(tot, done)
     except Exception as e:  # noqa: BLE001
-        status["sources"]["통계누리"] = {"ok": False, "error": str(e)[:300]}
-        log("통계누리 실패", e)
-        return
+        log("통계누리 5년 치 실패 → 13개월만", e)
+        try:
+            tot = molit(s, "2082", "128", _start(end, UNSOLD_MONTHS), end.strftime("%Y%m"))
+            done = molit(s, "5328", "1", _start(end, UNSOLD_MONTHS), end.strftime("%Y%m"))
+        except Exception as e2:  # noqa: BLE001
+            status["sources"]["통계누리"] = {"ok": False, "error": str(e2)[:300]}
+            log("통계누리 실패", e2)
+            return
+    if long is None:
+        try:
+            long = json.loads((DATA / "unsold.json").read_text(encoding="utf-8")).get("long")
+        except Exception:  # noqa: BLE001
+            long = None
     months = sorted({x["0"] for x in tot})[-(UNSOLD_MONTHS):]
     reg: dict[tuple, dict] = {}
     order = []
@@ -403,9 +445,12 @@ def collect_unsold(s, status) -> None:
         "capital": {"total": agg([r for r in sidos if r["sido"] in cap], "total"), "done": agg([r for r in sidos if r["sido"] in cap], "done")},
         "local": {"total": agg([r for r in sidos if r["sido"] not in cap], "total"), "done": agg([r for r in sidos if r["sido"] not in cap], "done")},
     }
-    (DATA / "unsold.json").write_text(json.dumps({"generated": now_kst().strftime("%Y-%m-%d %H:%M"), "months": months,
-        "summary": summary, "regions": [reg[k] for k in order]}, ensure_ascii=False, separators=(",", ":")))
-    status["sources"]["통계누리"] = {"ok": True, "latest": months[-1] if months else None, "regions": len(order)}
+    out = {"generated": now_kst().strftime("%Y-%m-%d %H:%M"), "months": months, "summary": summary, "regions": [reg[k] for k in order]}
+    if long and long.get("months"):
+        out["long"] = long
+    (DATA / "unsold.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
+    status["sources"]["통계누리"] = {"ok": True, "latest": months[-1] if months else None, "regions": len(order),
+                                  "long": len(long["months"]) if long and long.get("months") else 0}
     log("통계누리 완료", months[-1] if months else None, len(order), "지역")
 
 
