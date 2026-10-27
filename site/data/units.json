@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-27 21:45",
+ "generated": "2026-10-27 21:54",
  "items": [
   {
    "code": "seoul",
@@ -36,8 +36,9 @@
    "key": "2026년 9월 미분양주택 현황|https://www.busan.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=1760879&fileTy=ATTACH&fileNo=1",
    "fetched": "2026-10-27",
    "checked": "2026-10-27",
-   "ok": true,
-   "error": null
+   "ok": false,
+   "error": "HTTPSConnectionPool(host='www.busan.go.kr', port=443): Max retries exceeded with url: /depart/absalesinfo (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.busan.go.kr', port=443) at 0x7f7063b",
+   "note": null
   },
   {
    "code": "daegu",
@@ -55,8 +56,8 @@
    "key": "2026년 8월말 대구 공동주택 미분양 현황|https://www.daegu.go.kr/icms/cmm/fms/FileDown.do?atchFileId=FILE_000000000723546&fileSn=1",
    "fetched": "2026-10-11",
    "checked": "2026-10-27",
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='www.daegu.go.kr', port=443): Max retries exceeded with url: /build/index.do?menu_id=00001338&menu_link=/icms/bbs/selectBoardList.do&bbsId=BBS_00153&searchCnd=0&searchWrd=%EA%",
+   "ok": true,
+   "error": null,
    "note": "대구시 홈페이지가 해외 서버 접속을 자주 막아 아직 받지 못했습니다"
   },
   {
@@ -113,8 +114,8 @@
    "key": "울산광역시 미분양 주택 통계자료(2026. 8월)|https://www.ulsan.go.kr/u/enc/media/bbsFileDown.do?bbsId=BBS_0000000000000102&atchFileId=6vwkZxC2phVW5QBFUW7bb2EmhQf%2FdgGpOyvi84KeJ9U%3D&fileSn=QHy5PbVvoXXAx1%2B3dKbTsQ%3D%3D",
    "fetched": "2026-10-11",
    "checked": "2026-10-27",
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='www.ulsan.go.kr', port=443): Read timed out. (read timeout=30)",
+   "ok": true,
+   "error": null,
    "note": null
   },
   {
@@ -133,8 +134,8 @@
    "key": "경기도미분양아파트현황(2026년 08월 31일기준)|https://www.gg.go.kr/cmmn/download.do?idx=902960",
    "fetched": "2026-10-11",
    "checked": "2026-10-27",
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='www.gg.go.kr', port=443): Max retries exceeded with url: /ajax/board/getList.do (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.gg.go.kr', port=443) at 0x7f9901e7a1",
+   "ok": true,
+   "error": null,
    "note": null
   },
   {
