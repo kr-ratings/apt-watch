@@ -570,12 +570,12 @@ footer .ct{white-space:nowrap}
             <button type="button" class="ly" id="ly-sub" aria-pressed="true"><span class="lsw"><i class="dt" style="background:var(--mb0)"></i><i class="dt" style="background:var(--mb1)"></i><i class="dt" style="background:var(--mb2)"></i></span><span class="lt">분양 단지<small>1순위 경쟁률 · 크기 = 일반공급</small></span></button>
           </div></div>
           <div class="ly-row"><span class="ly-l">지역 색칠<small>하나만 · 다시 누르면 끔</small></span><div class="ly-c">
-            <button type="button" class="ly rd" data-ch="p" aria-pressed="false"><span class="lsw"><i class="sq" style="background:color-mix(in srgb,var(--hg) 32%,var(--land))"></i><i class="sq" style="background:color-mix(in srgb,var(--ha) 30%,var(--land))"></i><i class="sq" style="background:color-mix(in srgb,var(--ha) 58%,var(--land))"></i></span><span class="lt">입주 예정(향후 2년)<small>부동산원 · R114</small></span></button>
-            <button type="button" class="ly rd" data-ch="t" aria-pressed="true"><span class="lsw"><i class="sq" style="background:color-mix(in srgb,var(--hg) 42%,var(--land))"></i><i class="sq" style="background:color-mix(in srgb,var(--hg) 14%,var(--land))"></i><i class="sq" style="background:color-mix(in srgb,var(--ha) 58%,var(--land))"></i></span><span class="lt">미분양<small>국토부 · 시·군·구</small></span></button>
+            <button type="button" class="ly rd" data-ch="p" aria-pressed="true"><span class="lsw"><i class="sq" style="background:color-mix(in srgb,var(--hg) 32%,var(--land))"></i><i class="sq" style="background:color-mix(in srgb,var(--ha) 30%,var(--land))"></i><i class="sq" style="background:color-mix(in srgb,var(--ha) 58%,var(--land))"></i></span><span class="lt">입주 예정(향후 2년)<small>부동산원 · R114</small></span></button>
+            <button type="button" class="ly rd" data-ch="t" aria-pressed="false"><span class="lsw"><i class="sq" style="background:color-mix(in srgb,var(--hg) 42%,var(--land))"></i><i class="sq" style="background:color-mix(in srgb,var(--hg) 14%,var(--land))"></i><i class="sq" style="background:color-mix(in srgb,var(--ha) 58%,var(--land))"></i></span><span class="lt">미분양<small>국토부 · 시·군·구</small></span></button>
             <button type="button" class="ly rd" data-ch="d" aria-pressed="false"><span class="lsw"><i class="sq" style="background:color-mix(in srgb,var(--hg) 42%,var(--land))"></i><i class="sq" style="background:color-mix(in srgb,var(--hg) 14%,var(--land))"></i><i class="sq" style="background:color-mix(in srgb,var(--ha) 58%,var(--land))"></i></span><span class="lt">준공 후 미분양<small>다 짓고 남은 물량</small></span></button>
           </div></div>
           <div class="ly-row"><span class="ly-l">색칠 기준</span><div class="ly-c">
-            <div class="seg sm" role="group" aria-label="색칠 기준" id="seg-basis"><button type="button" data-v="dem" aria-pressed="true" id="basis-dem">월수요 대비</button><button type="button" data-v="abs" aria-pressed="false">절대량(참고)</button></div>
+            <div class="seg sm" role="group" aria-label="색칠 기준" id="seg-basis"><button type="button" data-v="dem" aria-pressed="true" id="basis-dem">수요 대비</button><button type="button" data-v="abs" aria-pressed="false">절대량(참고)</button></div>
             <span class="ly-note" id="basis-note"></span>
           </div></div>
           <div class="ly-row"><span class="ly-l">표현 방식</span><div class="ly-c">
@@ -826,9 +826,9 @@ function toggle(pb){ ss.open.has(pb)?ss.open.delete(pb):ss.open.add(pb); renderS
 /* ── 청약 지도(시 · 군 · 구별) ── 단지 원은 표와 같은 필터를 따르고 1순위 경쟁률 한 가지 계열(파랑)만 쓴다(빨강 · 주황 같은 부정 색 없음).
    지역 색칠은 수요 대비 값을 초록(없음 · 적음) ↔ 옅은 황금(많음)으로만 칠한다 */
 let MAP=null, SZ=null, SSEL=null, SPB=null, SSIG="";
-/* 지역 색칠: 입주 예정(향후 2년 ÷ 같은 기간 수요) · 미분양 · 준공 후 미분양(÷ 월수요). 기본은 미분양 · 번짐.
+/* 지역 색칠: 입주 예정(향후 2년 ÷ 같은 기간 수요) · 미분양 · 준공 후 미분양(÷ 월수요). 기본은 입주 예정 · 번짐.
    색은 초록(없음 · 적음) ↔ 옅은 황금(많음) 두 가지만 쓰고, 단지 원에는 색을 입히지 않는다 */
-const lay={sub:true,ch:"t",basis:"dem",style:"glow"};
+const lay={sub:true,ch:"p",basis:"dem",style:"glow"};
 let REG={};
 const rgKey=(sd,sg)=>{ if(sd==="세종") return "세종|세종시"; if(sd==="전남광주") sd=/구$/.test(sg)?"광주":"전남"; return sd+"|"+sg; };
 function buildReg(){ // 국토부 시 · 군 · 구 미분양 + 입주 · 수요 자료(시군구)를 지도 경계 단위로 맞춘다
