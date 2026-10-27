@@ -354,6 +354,22 @@ def _start(end, back):
     return f"{y}{m:02d}"
 
 
+def _ym(d, k):
+    """d(그달 1일)에서 k개월 앞뒤 'YYYYMM'."""
+    t = d.year * 12 + d.month - 1 + k
+    return f"{t // 12}{t % 12 + 1:02d}"
+
+
+def molit_long(s, fid, style, end, back):
+    """통계누리는 한 번에 최대 60개월만 준다 → 48개월씩 나눠 받아 합친다(겹치는 달 없음)."""
+    rows, k = [], -(back + 2)
+    while k <= 0:
+        hi = min(k + 47, 0)
+        rows += molit(s, fid, style, _ym(end, k), _ym(end, hi))
+        k = hi + 1
+    return rows
+
+
 def _long_summary(tot, done) -> dict:
     """요약 칸 1년 · 3년 · 5년 추이용: 시 · 도 합계만으로 전국 · 수도권 · 지방 미분양과 준공 후 미분양을 월별로 만든다."""
     months = sorted({x["0"] for x in tot})[-UNSOLD_LONG:]
@@ -384,8 +400,8 @@ def collect_unsold(s, status) -> None:
     end = now_kst().date().replace(day=1)
     long = None
     try:   # 5년 치를 한 번에 받는다(요약 추이용). 안 되면 예전처럼 13개월만 받고 5년 추이는 직전 값을 둔다
-        tot = molit(s, "2082", "128", _start(end, UNSOLD_LONG), end.strftime("%Y%m"))
-        done = molit(s, "5328", "1", _start(end, UNSOLD_LONG), end.strftime("%Y%m"))
+        tot = molit_long(s, "2082", "128", end, UNSOLD_LONG)
+        done = molit_long(s, "5328", "1", end, UNSOLD_LONG)
         long = _long_summary(tot, done)
     except Exception as e:  # noqa: BLE001
         log("통계누리 5년 치 실패 → 13개월만", e)
