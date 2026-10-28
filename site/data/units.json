@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-28 07:46",
+ "generated": "2026-10-28 16:10",
  "items": [
   {
    "code": "seoul",
@@ -56,8 +56,8 @@
    "key": "2026년 8월말 대구 공동주택 미분양 현황|https://www.daegu.go.kr/icms/cmm/fms/FileDown.do?atchFileId=FILE_000000000723546&fileSn=1",
    "fetched": "2026-10-11",
    "checked": "2026-10-28",
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='www.daegu.go.kr', port=443): Max retries exceeded with url: /build/index.do?menu_id=00001338&menu_link=/icms/bbs/selectBoardList.do&bbsId=BBS_00153&searchCnd=0&searchWrd=%EA%",
+   "ok": true,
+   "error": null,
    "note": "대구시 홈페이지가 해외 서버 접속을 자주 막아 아직 받지 못했습니다"
   },
   {
@@ -161,21 +161,20 @@
    "code": "chungbuk",
    "rg": "충북",
    "org": "충청북도",
-   "title": "2026년 7월 31일 기준 미분양현황입니다.",
-   "month": "2026-07",
+   "title": "2026년 9월 30일 기준 미분양 현황입니다.",
+   "month": "2026-09",
    "posted": null,
-   "post": "https://www.chungbuk.go.kr/www/selectBbsNttView.do?key=646&bbsNo=97&nttNo=441569&searchCtgry=&searchCnd=all&searchKrwd=&pageIndex=1",
+   "post": "https://www.chungbuk.go.kr/www/selectBbsNttView.do?key=646&bbsNo=97&nttNo=442999&searchCtgry=&searchCnd=all&searchKrwd=&pageIndex=1",
    "board": "https://www.chungbuk.go.kr/www/selectBbsNttList.do?bbsNo=97&key=646",
    "file": "data/units/chungbuk.pdf",
    "ext": "pdf",
-   "size": 53661,
-   "orig": "26.7.31.기준 미분양 주택현황(충청북도)_업체별.pdf",
-   "key": "2026년 7월 31일 기준 미분양현황입니다.|https://www.chungbuk.go.kr/www/downloadBbsFile.do?key=646&bbsNo=97&atchmnflNo=295188",
-   "fetched": "2026-10-11",
+   "size": 144902,
+   "orig": "26.9.30.기준 미분양 주택현황(충청북도)_업체별현황.pdf",
+   "key": "2026년 9월 30일 기준 미분양 현황입니다.|https://www.chungbuk.go.kr/www/downloadBbsFile.do?key=646&bbsNo=97&atchmnflNo=297282",
+   "fetched": "2026-10-28",
    "checked": "2026-10-28",
-   "ok": false,
-   "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))",
-   "note": null
+   "ok": true,
+   "error": null
   },
   {
    "code": "chungnam",

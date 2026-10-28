@@ -1,33 +1,15 @@
 {
- "generated": "2026-10-28 13:48",
+ "generated": "2026-10-28 16:10",
  "sources": {
-  "모집공고문": {
-   "ok": true,
-   "read_now": 0,
-   "miss_now": 0,
-   "done": 353,
-   "rows": 386,
-   "bal": 266,
-   "mid": 285
-  },
-  "청약홈": {
-   "ok": true,
-   "rows": 386,
-   "fails": 0,
-   "fetched": 39,
-   "geo": {
-    "vworld": 0,
-    "bjd": 363,
-    "none": 23
-   }
+  "한국은행 ECOS": {
+   "ok": false,
+   "error": "수집 오류 · 직전 값 표시"
   },
   "단지별 미분양(지자체)": {
    "ok": true,
-   "regions": 10,
+   "regions": 12,
    "of": 12,
-   "failed": [
-    "충북"
-   ]
+   "failed": []
   },
   "착공 · 인허가": {
    "ok": true,
@@ -49,6 +31,26 @@
    "latest": "2026-08",
    "regions": 249,
    "long": 61
+  },
+  "모집공고문": {
+   "ok": true,
+   "read_now": 0,
+   "miss_now": 0,
+   "done": 353,
+   "rows": 386,
+   "bal": 266,
+   "mid": 285
+  },
+  "청약홈": {
+   "ok": true,
+   "rows": 386,
+   "fails": 0,
+   "fetched": 39,
+   "geo": {
+    "vworld": 0,
+    "bjd": 363,
+    "none": 23
+   }
   }
  }
 }
