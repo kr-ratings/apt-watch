@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-28 16:21",
+ "generated": "2026-10-28 17:13",
  "sources": {
   "한국은행 ECOS": {
    "ok": true,
@@ -8,7 +8,7 @@
   },
   "단지별 미분양(지자체)": {
    "ok": true,
-   "regions": 11,
+   "regions": 10,
    "of": 12,
    "failed": [
     "부산"
