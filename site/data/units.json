@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-28 16:10",
+ "generated": "2026-10-28 16:20",
  "items": [
   {
    "code": "seoul",
@@ -36,8 +36,8 @@
    "key": "2026년 9월 미분양주택 현황|https://www.busan.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=1760879&fileTy=ATTACH&fileNo=1",
    "fetched": "2026-10-27",
    "checked": "2026-10-28",
-   "ok": true,
-   "error": null,
+   "ok": false,
+   "error": "",
    "note": null
   },
   {
