@@ -104,7 +104,20 @@ def rt_fetch(status: dict) -> None:
     if not KEY:
         log("실거래가: 공공데이터포털 키(DATA_GO_KR_KEY)가 없어 저장된 자료로만 만듦")
         return
-    CODE = codes(); sess = requests.Session(); lock = threading.Lock(); stop = [False]; calls = [0]
+    CODE = codes(); sess = requests.Session(); lock = threading.Lock(); stop = [False]; calls = [0]; fails = [0]
+    # 먼저 한 번만 불러 접속 · 인증키를 확인한다(안 되면 오래 기다리지 않고 저장된 자료로)
+    pre = None
+    for att in range(3):
+        try:
+            r = sess.get(EP, params={"serviceKey": KEY, "LAWD_CD": "11680", "DEAL_YMD": end, "pageNo": 1, "numOfRows": 1}, timeout=(10, 30))
+            pre = (r.status_code, (ET.fromstring(r.content).findtext(".//errMsg") or ET.fromstring(r.content).findtext(".//returnAuthMsg") or "").strip()); break
+        except Exception as e:  # noqa: BLE001
+            log("실거래가: 접속 확인 실패", att + 1, type(e).__name__); time.sleep(5 + att * 5)
+    if pre is None:
+        status["sources"]["국토부 실거래가"] = {"ok": False, "error": "공공데이터포털 접속이 안 됨 · 저장된 자료 표시"}; return
+    if pre[1]:
+        log("실거래가: 응답 오류", pre[0], clean(pre[1])[:60])
+        status["sources"]["국토부 실거래가"] = {"ok": False, "error": "공공데이터포털 인증키 · 응답 오류 · 저장된 자료 표시"}; return
 
     def fetch(code, ymd):
         rows, page = [], 1
@@ -127,7 +140,11 @@ def rt_fetch(status: dict) -> None:
                     break
                 except Exception as e:  # noqa: BLE001
                     if att == 3:
-                        log("실거래가: 실패", code, ymd, type(e).__name__, clean(e)[:100]); return None
+                        with lock:
+                            fails[0] += 1
+                            if fails[0] >= 30:
+                                stop[0] = True
+                        log("실거래가: 실패", code, ymd, type(e).__name__); return None   # 오류 문구에는 요청 주소가 들어 있어 남기지 않는다
                     time.sleep(2 + att * 3)
             if page * 1000 >= tot:
                 return rows
@@ -135,7 +152,7 @@ def rt_fetch(status: dict) -> None:
 
     done, t0 = [], time.time()
     for ym in want:
-        with cf.ThreadPoolExecutor(8) as ex:
+        with cf.ThreadPoolExecutor(5) as ex:
             res = list(ex.map(lambda c: (c, fetch(c, ym)), list(CODE)))
         if stop[0]:
             break
@@ -166,7 +183,9 @@ def rt_fetch(status: dict) -> None:
         tmp = RTC / f"{ym}.json.gz.tmp"; tmp.write_bytes(gzip.compress(json.dumps(out, ensure_ascii=False, separators=(",", ":")).encode(), mtime=0))
         os.replace(tmp, RTC / f"{ym}.json.gz"); done.append(ym)
     log("실거래가: 받은 달", len(done), "/", len(want), "호출", calls[0], f"{time.time() - t0:.0f}초")
-    status["sources"]["국토부 실거래가"] = {"ok": not stop[0] and len(done) == len(want), "latest": max(done) if done else None, "months": len(done)}
+    ok = not stop[0] and len(done) == len(want)
+    status["sources"]["국토부 실거래가"] = {"ok": ok, "latest": max(done) if done else None, "months": len(done),
+                                       **({} if ok else {"error": "일부 달을 받지 못함 · 받은 달까지 반영"})}
 
 
 # ── 2) 지역별 달 지수 · 평당가 ──────────────────────────────────────
