@@ -190,9 +190,12 @@ def rt_build(status: dict) -> dict | None:
         log("실거래가: 빠진 달이 있어 지수를 새로 만들지 않음", miss[:5]); return None
     T = len(allm); TI = {m: i for i, m in enumerate(allm)}
 
+    METRO = ("부산", "대구", "광주", "대전", "울산")          # 5대 광역시(접힌 칸 요약용 묶음)
+
     def lvkeys(k):
         s, g, d = k.split("|")
-        return (("all", "전국"), ("sido", SIDO_OF(s)), ("sgg", f"{s}|{g}"), ("dong", k))
+        base = (("all", "전국"), ("sido", SIDO_OF(s)), ("sgg", f"{s}|{g}"), ("dong", k))
+        return base + ((("grp", "5대광역시"),) if s in METRO else ())
     obs, adong, sums = {}, {}, {}
     for f in files:
         d = json.loads(gzip.decompress(f.read_bytes())); t = TI[d["ym"]]
@@ -263,7 +266,7 @@ def rt_build(status: dict) -> dict | None:
     def ints(a):
         return [None if (x is None or (isinstance(x, float) and math.isnan(x))) else int(round(x)) for x in a]
     months = [f"{m[:4]}-{m[4:]}" for m in allm]
-    levels = {"all": {}, "sido": {}, "sgg": {}}; dongs = {}
+    levels = {"all": {}, "sido": {}, "sgg": {}, "grp": {}}; dongs = {}
     for (lv, kk), w in SP.items():
         e = {"p": ints(pp(w, 3)), "pe": ints(pp(w, 2)), "n": ints(w[:, 0])}
         if (lv, kk) in idx:
@@ -298,7 +301,12 @@ def rt_build(status: dict) -> dict | None:
     write_json(OUTR / "main.json", main)
     a = levels["all"]["전국"]; N = T - 1
     c12 = round((a["i"][N] / a["i"][N - 12] - 1) * 100, 2) if "i" in a and N >= 12 else None
-    write_json(OUTR / "sum.json", {"asof": months[-1], "p": (a.get("pw") or a["p"])[N], "c12": c12})
+    # 접힌 칸 요약: 최근 10년 연평균 상승률(지수 기준) — 서울 · 경기 · 5대 광역시
+    def cagr(e, yrs=10):
+        k = 12 * yrs
+        return round(((e["i"][N] / e["i"][N - k]) ** (1 / yrs) - 1) * 100, 4) if e and "i" in e and N >= k else None   # 화면에서 소수 한 자리로
+    ten = {"서울": cagr(levels["sido"].get("서울")), "경기": cagr(levels["sido"].get("경기")), "5대광역시": cagr(levels["grp"].get("5대광역시"))}
+    write_json(OUTR / "sum.json", {"asof": months[-1], "from": months[N - 120] if N >= 120 else None, "p": (a.get("pw") or a["p"])[N], "c12": c12, "a10": ten})
     log("실거래가: 지역 지수", {lv: sum(1 for (l, _) in idx if l == lv) for lv in ("all", "sido", "sgg", "dong")}, "마지막 달", months[-1])
     return {"months": months, "levels": levels, "sums": {k: v for k, v in sums.items() if k[0] == "sido" or k[0] == "all"},
             "dong_sums": {k: v for k, v in sums.items() if k[0] == "dong"}}
