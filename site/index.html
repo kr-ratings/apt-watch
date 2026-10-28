@@ -778,6 +778,7 @@ footer .ct{white-space:nowrap}
 
 
 
+
   <!-- MK:START 실거래가 지도 · 아파트 시가총액 vs M2 -->
   <div id="mk">
   <section aria-labelledby="h-rt">
@@ -1634,9 +1635,9 @@ $("#dl-units").addEventListener("click",async()=>{ const b=$("#dl-units"), t=b.l
 (()=>{
 // 요약 줄은 작은 sum.json 으로 먼저, 지도 자료(main.json · map.json)는 칸을 처음 펼칠 때 불러온다
 const q$=s=>document.querySelector(s);
-fetch("data/rt/sum.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{ if(!j||!j.a10||!q$("#rt-sum")||q$("#rt-sum").dataset.ok) return;
-  const one=(nm,x)=>`${nm} <b style="color:${x>0?"var(--up)":x<0?"var(--down)":"inherit"}">${x==null?"–":(x>0?"▲":x<0?"▼":"")+Math.abs(x).toFixed(1)+"%"}</b>`;
-  q$("#rt-sum").innerHTML=`최근 10년 실거래가 연평균 상승률 ${one("서울",j.a10["서울"])} · ${one("경기",j.a10["경기"])} · ${one("5대 광역시",j.a10["5대광역시"])}`;
+fetch("data/rt/sum.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{ if(!j||!j.c10||!q$("#rt-sum")||q$("#rt-sum").dataset.ok) return;
+  const one=(nm,x)=>`${nm} <b style="color:${x>0?"var(--up)":x<0?"var(--down)":"inherit"}">${x==null?"–":(x>0?"▲":x<0?"▼":"")+(Math.abs(x)<10?Math.abs(x).toFixed(1):Math.round(Math.abs(x)))+"%"}</b>`;
+  q$("#rt-sum").innerHTML=`최근 10년 실거래가 상승률 ${one("서울",j.c10["서울"])} · ${one("경기",j.c10["경기"])} · ${one("5대 광역시",j.c10["5대광역시"])}`;
   if(j.from) q$("#rt-sum").title=`'${j.from.slice(2,4)}.${j.from.slice(5)}~'${j.asof.slice(2,4)}.${j.asof.slice(5)} 같은 단지 반복거래 지수 기준`; }).catch(()=>{});
 let RTL=false;
 q$("#rt-fold").addEventListener("toggle",async e=>{ if(!e.target.open||RTL) return; RTL=true; const box=q$("#rtmap"); box.innerHTML='<div class="placeholder" style="padding:40px 0;text-align:center;color:var(--muted)">불러오는 중…</div>';
@@ -1674,10 +1675,10 @@ function rankCls(items){ const v=items.filter(o=>o.v!=null).sort((a,b)=>b.v-a.v)
 const CC=c=>c==null?"var(--nodata)":`var(--r${c+1})`;
 function renderSum(){ const a=RT.levels.all&&RT.levels.all["전국"]; const v=chg(a);
   $("#rt-demo").hidden=!RT.demo;
-  // 접힌 칸 요약: 최근 10년 연평균 상승률(지수 기준) — 서울 · 경기 · 5대 광역시
-  const cg=e=>e&&e.i&&NM>=120?(Math.pow(e.i[NM]/e.i[NM-120],.1)-1)*100:null, L=RT.levels, gr=L.grp||{};
-  const one=(nm,x)=>`${nm} <b class="${x>0?"up":x<0?"dn":""}" style="color:${x>0?"var(--up)":x<0?"var(--down)":"inherit"}">${arrow(x)}${x==null?"–":Math.abs(x).toFixed(1)+"%"}</b>`;
-  $("#rt-sum").innerHTML=`최근 10년 실거래가 연평균 상승률 ${one("서울",cg(L.sido["서울"]))} · ${one("경기",cg(L.sido["경기"]))} · ${one("5대 광역시",cg(gr["5대광역시"]))}`;
+  // 접힌 칸 요약: 최근 10년 누적 상승률(지수 기준) — 서울 · 경기 · 5대 광역시
+  const cg=e=>e&&e.i&&NM>=120?(e.i[NM]/e.i[NM-120]-1)*100:null, L=RT.levels, gr=L.grp||{};
+  const one=(nm,x)=>`${nm} <b class="${x>0?"up":x<0?"dn":""}" style="color:${x>0?"var(--up)":x<0?"var(--down)":"inherit"}">${arrow(x)}${pctT(x)}</b>`;
+  $("#rt-sum").innerHTML=`최근 10년 실거래가 상승률 ${one("서울",cg(L.sido["서울"]))} · ${one("경기",cg(L.sido["경기"]))} · ${one("5대 광역시",cg(gr["5대광역시"]))}`;
   $("#rt-sum").title=`${ymd(MS[NM-120]||MS[0])}~${ymd(MS[NM])} 같은 단지 반복거래 지수 기준`; void a; void v; }
 function draw(){
   const box=$("#rtmap"); const pj=MP.proj, LL=(lon,lat)=>[(lon-pj.lon0)*pj.kx,(pj.lat0-lat)*1000];

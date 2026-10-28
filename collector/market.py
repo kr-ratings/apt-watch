@@ -325,7 +325,11 @@ def rt_build(status: dict) -> dict | None:
         k = 12 * yrs
         return round(((e["i"][N] / e["i"][N - k]) ** (1 / yrs) - 1) * 100, 4) if e and "i" in e and N >= k else None   # 화면에서 소수 한 자리로
     ten = {"서울": cagr(levels["sido"].get("서울")), "경기": cagr(levels["sido"].get("경기")), "5대광역시": cagr(levels["grp"].get("5대광역시"))}
-    write_json(OUTR / "sum.json", {"asof": months[-1], "from": months[N - 120] if N >= 120 else None, "p": (a.get("pw") or a["p"])[N], "c12": c12, "a10": ten})
+    def cum(e, yrs=10):          # 최근 10년 누적 상승률(접힌 칸 요약에 씀)
+        k = 12 * yrs
+        return round((e["i"][N] / e["i"][N - k] - 1) * 100, 4) if e and "i" in e and N >= k else None
+    c10 = {"서울": cum(levels["sido"].get("서울")), "경기": cum(levels["sido"].get("경기")), "5대광역시": cum(levels["grp"].get("5대광역시"))}
+    write_json(OUTR / "sum.json", {"asof": months[-1], "from": months[N - 120] if N >= 120 else None, "p": (a.get("pw") or a["p"])[N], "c12": c12, "c10": c10, "a10": ten})
     log("실거래가: 지역 지수", {lv: sum(1 for (l, _) in idx if l == lv) for lv in ("all", "sido", "sgg", "dong")}, "마지막 달", months[-1])
     return {"months": months, "levels": levels, "sums": {k: v for k, v in sums.items() if k[0] == "sido" or k[0] == "all"},
             "dong_sums": {k: v for k, v in sums.items() if k[0] == "dong"}}
