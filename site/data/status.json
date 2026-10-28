@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-28 22:24",
+ "generated": "2026-10-29 07:50",
  "sources": {
   "국토부 실거래가": {
    "ok": true,
@@ -30,7 +30,7 @@
    "kapt": "2026.10.26",
    "plan_basis": "2026년 6월 말",
    "pop": "2026-09",
-   "notices": 751
+   "notices": 752
   },
   "통계누리": {
    "ok": true,
@@ -40,21 +40,21 @@
   },
   "모집공고문": {
    "ok": true,
-   "read_now": 0,
+   "read_now": 1,
    "miss_now": 0,
-   "done": 353,
-   "rows": 386,
-   "bal": 266,
-   "mid": 285
+   "done": 354,
+   "rows": 387,
+   "bal": 267,
+   "mid": 286
   },
   "청약홈": {
    "ok": true,
-   "rows": 386,
+   "rows": 387,
    "fails": 0,
-   "fetched": 39,
+   "fetched": 41,
    "geo": {
     "vworld": 0,
-    "bjd": 363,
+    "bjd": 364,
     "none": 23
    }
   }
