@@ -318,13 +318,13 @@ def ecos_series(stat: str, item: str, start: str, end: str) -> dict:
     while y <= end:
         z = min(end, nxt(y, step - 1))
         url = f"{ECOS}/{key}/json/kr/1/{step}/{stat}/M/{y}/{z}/{item}"
-        for att in range(4):
+        for att in range(5):
             try:
-                rows = s.get(url, timeout=30).json().get("StatisticSearch", {}).get("row", []); break
+                rows = s.get(url, timeout=(15, 40)).json().get("StatisticSearch", {}).get("row", []); break
             except Exception as e:  # noqa: BLE001
-                if att == 3:
-                    raise RuntimeError(f"ECOS {stat} {item} 실패: {clean(e)[:80]}")
-                time.sleep(2 + att * 2)
+                if att == 4:
+                    raise RuntimeError(f"ECOS {stat} {item} 실패: {type(e).__name__}")
+                time.sleep(5 * (att + 1))
         for r in rows:
             out[f"{r['TIME'][:4]}-{r['TIME'][4:6]}"] = float(r["DATA_VALUE"])
         y = nxt(z)
@@ -352,8 +352,14 @@ def ecos_update() -> dict:
 
 
 def hm_build(status: dict, rt: dict | None) -> None:
-    E = ecos_update(); IDX, M2 = E["idx"], E["m2"]
-    status["sources"]["한국은행 ECOS"] = {"ok": True, "latest_idx": max(IDX["전국"]), "latest_m2": max(M2)}
+    try:
+        E = ecos_update()
+        status["sources"]["한국은행 ECOS"] = {"ok": True, "latest_idx": max(E["idx"]["전국"]), "latest_m2": max(E["m2"])}
+    except Exception as e:  # noqa: BLE001 — 접속이 안 되면 저장된 값으로 만들고 상태에만 표시
+        log("ECOS 받기 실패 → 저장된 값 사용", clean(e)[:120])
+        E = json.loads((CACHE / "ecos.json").read_text(encoding="utf-8"))
+        status["sources"]["한국은행 ECOS"] = {"ok": False, "error": "접속 실패 · 저장된 값으로 계산"}
+    IDX, M2 = E["idx"], E["m2"]
     K = kapt_units()
     if not K.get("tot"):
         log("시가총액: K-apt 세대수 자료가 없음(입주 · 수요 단계가 먼저 돌아야 함)"); return
