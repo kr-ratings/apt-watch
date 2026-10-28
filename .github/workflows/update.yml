@@ -7,7 +7,7 @@ on:
   workflow_dispatch:          # Actions 탭에서 'Run workflow'로 즉시 실행
     inputs:
       only:
-        description: "일부만 수집(applyhome · notice · unsold · supply · units 중 띄어쓰기로). 비우면 전체"
+        description: "일부만 수집(applyhome · notice · unsold · supply · units · market 중 띄어쓰기로). 비우면 전체"
         required: false
         default: ""
   push:
@@ -33,7 +33,7 @@ jobs:
           ONLY="${{ github.event.inputs.only }}"
           # 아침(07:10) 예약만 전체 수집, 오후 · 저녁 예약은 청약만
           if [ -n "${{ github.event.schedule }}" ] && [ "${{ github.event.schedule }}" != "10 22 * * 0-4" ]; then ONLY="applyhome notice"; fi
-          echo "ONLY=${ONLY:-applyhome notice unsold supply units}" >> "$GITHUB_ENV"
+          echo "ONLY=${ONLY:-applyhome notice unsold supply units market}" >> "$GITHUB_ENV"
           echo "이번 수집: ${ONLY:-전체}"
 
       # 출처마다 단계를 나누고 시간 상한을 둔다. 한 곳이 응답 없이 붙잡고 있어도
@@ -71,6 +71,15 @@ jobs:
         timeout-minutes: 8
         continue-on-error: true
         run: python collector/collect.py units
+      - name: 실거래가 지도 · 아파트 시가총액 (국토부 실거래가 · 한국은행 ECOS)
+        id: market
+        if: ${{ contains(format(' {0} ', env.ONLY), ' market ') }}
+        timeout-minutes: 20
+        continue-on-error: true
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}   # 공공데이터포털(국토교통부 아파트 매매 실거래가 상세). 없으면 저장된 자료로만 만든다
+          ECOS_API_KEY: ${{ secrets.ECOS_API_KEY }}       # 한국은행 ECOS. 없으면 공개 견본 키(한 번에 10줄)로 받는다
+        run: python collector/collect.py market   # 입주 · 수요 단계가 만든 K-apt 세대수(cache/kapt_market.json)를 쓰므로 그 뒤에
 
       - name: 수집 결과 커밋 (Cloudflare Pages가 이 커밋으로 자동 배포)
         if: ${{ !cancelled() }}
@@ -81,6 +90,7 @@ jobs:
           [ "${{ steps.unsold.outcome }}" = "failure" ] && T+=("통계누리")
           [ "${{ steps.supply.outcome }}" = "failure" ] && T+=("입주 · 수요")
           [ "${{ steps.units.outcome }}" = "failure" ] && T+=("단지별 미분양(지자체)")
+          [ "${{ steps.market.outcome }}" = "failure" ] && T+=("국토부 실거래가")
           python collector/finalize.py "${T[@]}" || true
           git config user.name "apt-watch-bot"
           git config user.email "apt-watch-bot@users.noreply.github.com"

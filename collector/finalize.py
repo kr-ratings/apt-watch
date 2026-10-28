@@ -16,7 +16,7 @@ DATA = ROOT / "site" / "data"
 
 
 def restore_broken() -> None:
-    for f in sorted([*DATA.glob("*.json"), *(ROOT / "cache").glob("*.json")]):
+    for f in sorted([*DATA.glob("*.json"), *DATA.glob("rt/*.json"), *(ROOT / "cache").glob("*.json")]):
         try:
             json.loads(f.read_text())
         except Exception as e:  # noqa: BLE001

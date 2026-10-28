@@ -21,7 +21,7 @@ import time
 
 import openpyxl
 
-from collect import log, now_kst, num, req  # noqa: E402
+from collect import CACHE, log, now_kst, num, req  # noqa: E402
 
 KAPT = "https://www.k-apt.go.kr"
 JUMIN = "https://jumin.mois.go.kr"
@@ -105,6 +105,7 @@ def kapt_completions(s, short) -> tuple[dict, dict, dict]:
     ws = wb.worksheets[0]
     ws.reset_dimensions()          # 파일에 적힌 범위가 'A1'뿐이라 다시 잡아야 전체 행을 읽는다
     head, out, out_sd, n, used = None, {}, {}, 0, 0
+    mk_tot, mk_pub, mk_dong = {}, {}, {}     # 실거래가 지도 · 시가총액용(market.py): 시도별 사용승인월 세대수 · 공공임대, 동별 세대수
     for row in ws.iter_rows(values_only=True):
         if head is None:
             cells = [str(c).strip() if c is not None else "" for c in row]
@@ -118,10 +119,20 @@ def kapt_completions(s, short) -> tuple[dict, dict, dict]:
         d = re.sub(r"\D", "", str(g("사용승인일") or ""))[:6]
         hh = num(g("세대수"))
         sd = short(str(g("시도") or ""))
+        sg_raw = str(g("시군구") or "").strip()
+        pub = min(num(g("임대세대수(공공)")) or 0, hh or 0)
+        if hh and sd:                               # 동별 세대수(공공임대 제외) — 지역별 세대수 가중 평당가용
+            em = str(g("읍면") or "").strip()
+            dk = f"{sd}|{sg_raw}|{str(g('동리') or '').strip() or em}|{em}"
+            mk_dong[dk] = mk_dong.get(dk, 0) + max(0, int(round(hh - pub)))
         if len(d) != 6 or not hh or not sd:
             continue
-        u = unit_of(sd, str(g("시군구") or ""))
+        u = unit_of(sd, sg_raw)
         sd = u[0] if u else sd                      # 군위군은 대구로
+        s2 = sd if sd != "전남광주" else ("광주" if (u and u[1].startswith("광주 ")) or sg_raw.startswith("광주") else "전남")
+        mk_tot.setdefault(s2, {})[d] = mk_tot.get(s2, {}).get(d, 0) + int(round(hh))
+        if pub:
+            mk_pub.setdefault(s2, {})[d] = mk_pub.get(s2, {}).get(d, 0) + int(round(pub))
         out_sd[(sd, d)] = out_sd.get((sd, d), 0) + int(round(hh))
         if u:
             out[(u[0], u[1], d)] = out.get((u[0], u[1], d), 0) + int(round(hh))
@@ -129,6 +140,12 @@ def kapt_completions(s, short) -> tuple[dict, dict, dict]:
     wb.close()
     if not head or not out:
         raise RuntimeError(f"K-apt 단지 기본정보에서 읽은 단지가 없음(머리행 {'있음' if head else '없음'}, {n}행)")
+    try:
+        CACHE.mkdir(exist_ok=True)
+        (CACHE / "kapt_market.json").write_text(json.dumps({"basis": basis, "tot": mk_tot, "pub": mk_pub, "dong": mk_dong},
+                                                           ensure_ascii=False, separators=(",", ":")))
+    except Exception as e:  # noqa: BLE001 — 부가 자료라 실패해도 입주 집계는 그대로
+        log("K-apt 시가총액용 자료 저장 실패", type(e).__name__)
     return out_sd, out, {"basis": basis, "complexes": used, "rows": n, "file": f["fileName"]}
 
 

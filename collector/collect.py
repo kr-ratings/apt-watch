@@ -489,6 +489,9 @@ def main():
     if "units" in only:                    # 지자체 공개 단지별(업체별) 미분양 원문
         from units import collect_units
         collect_units(s, status)
+    if "market" in only:                   # 실거래가 지도 · 아파트 시가총액(추정) vs M2
+        from market import collect_market
+        collect_market(status)
     old = json.loads(st_f.read_text()) if st_f.exists() else {"sources": {}}
     for k, v in old.get("sources", {}).items():
         status["sources"].setdefault(k, v)
