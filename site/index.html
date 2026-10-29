@@ -1687,9 +1687,16 @@ function draw(){
   const ar=W/H; if(vb[2]/vb[3]<ar){ const nw=vb[3]*ar; vb[0]-=(nw-vb[2])/2; vb[2]=nw; } else { const nh=vb[2]/ar; vb[1]-=(nh-vb[3])/2; vb[3]=nh; }
   const base=vb.slice(), KMAX=40;
   if(Z){ const w=base[2]/Z.k, h=base[3]/Z.k, x=Math.max(base[0],Math.min(base[0]+base[2]-w,Z.cx-w/2)), y=Math.max(base[1],Math.min(base[1]+base[3]-h,Z.cy-h/2)); Z.cx=x+w/2; Z.cy=y+h/2; vb=[x,y,w,h]; }
-  const zk=Z?Z.k:1, u=vb[2]/W, lv=zk<2.2?"sido":zk<7?"sgg":"dong";
+  const zk=Z?Z.k:1, u=vb[2]/W;
   const inV=(x,y,m=0)=>x>=vb[0]-m&&x<=vb[0]+vb[2]+m&&y>=vb[1]-m&&y<=vb[1]+vb[3]+m;
   const L=RT.levels, PY=MP.poly;
+  // 동별로 바꾸는 때: 화면 가운데(가로 · 세로 가운데 60%) 시 · 군 · 구가 화면에서 충분히 커진 뒤(작은 쪽 1/4 값의 한 변이 DPX 픽셀 이상)
+  // — 부산 · 서울처럼 구가 작은 도시는 더 확대해야 동별로 바뀌어, 그 사이에 구 이름이 다 나온다
+  let lv=zk<2.2?"sido":"sgg";
+  if(lv==="sgg"&&zk>=7){ const SA=MP.sa||{}, DPX=66, mx=vb[2]*.2, my=vb[3]*.2;
+    const inC=(x,y)=>x>=vb[0]+mx&&x<=vb[0]+vb[2]-mx&&y>=vb[1]+my&&y<=vb[1]+vb[3]-my;
+    const px=Object.keys(PY).filter(k=>SA[k]&&MP.pts[k]&&inC(...MP.pts[k])).map(k=>Math.sqrt(SA[k])/.112/u).sort((a,b)=>a-b);
+    if(!px.length||px[px.length>>2]>=DPX) lv="dong"; }
   // 이번 화면의 비교 대상과 단계
   let items=[];
   if(lv==="sido") items=MP.sido.map(g=>({k:g.n,v:chg(L.sido[g.n]),x:g.x,y:g.y,e:L.sido[g.n],nm:g.n}));
@@ -1708,17 +1715,39 @@ function draw(){
     s+=`<path class="rg" data-r="${esc(k)}" d="${PY[k]}" fill-rule="evenodd" style="fill:${fillOf(k)};fill-opacity:${op}" vector-effect="non-scaling-stroke"/>`; }
   MP.sido.forEach(g=>{ s+=`<path class="sd" d="${g.d}" vector-effect="non-scaling-stroke"/>`; });
   if(lv==="dong") items.forEach(o=>{ s+=`<circle class="dg" data-d="${esc(o.k)}" cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="${(o.e?5.5:3.5)*u}" style="fill:${CC(C.get(o.k))}" vector-effect="non-scaling-stroke"/>`; });
-  // 라벨: 이름 + 화살표 · 변동률 / 평당가 — 거래가 많은 곳부터 겹치지 않게
-  const fs=(lv==="sido"?11.5:10.5)*u, placed=[];
-  const lab=o=>{ const v=o.v, e=o.e; const l1=`<tspan class="nm">${esc(o.nm)}</tspan> <tspan class="${v>0?"up":v<0?"dn":"pp"}">${arrow(v)}${pctT(v)}</tspan>`, l2=e?`평당 ${manT(PW(e))}`:"자료 없음";
-    const w=Math.max([...(o.nm+" ▲00.0%")].length,[...l2].length)*fs*.62, h=fs*2.35;
-    // 경기는 서울을 둘러싸 중심이 서울과 겹치므로 서울 남동쪽(용인 · 이천 부근)에 이름을 단다
-    const ax=lv==="sido"&&o.k==="경기"?[(127.33-124)*803.8568606172173,(39-37.2)*1000]:[o.x,o.y];
-    const cands=lv==="dong"?[[o.x,o.y-7*u-h,"middle"],[o.x,o.y+8*u,"middle"]]:[[ax[0],ax[1]-h/2],[ax[0],ax[1]-h*1.05],[ax[0],ax[1]+h*.1],[ax[0]+w*.6,ax[1]-h/2],[ax[0]-w*.6,ax[1]-h/2],[ax[0],ax[1]+h*1.15]];
-    for(const [x,y] of cands){ const r={x0:x-w/2,x1:x+w/2,y0:y,y1:y+h}; if(placed.some(q=>r.x0<q.x1&&r.x1>q.x0&&r.y0<q.y1&&r.y1>q.y0)) continue; placed.push(r);
-      s+=`<text class="lb" x="${x.toFixed(1)}" y="${(y+fs).toFixed(1)}" text-anchor="middle" style="font-size:${fs}px;stroke-width:${3.2*u}px">${l1}</text><text class="lb" x="${x.toFixed(1)}" y="${(y+fs*2.15).toFixed(1)}" text-anchor="middle" style="font-size:${fs*.92}px;stroke-width:${3.2*u}px"><tspan class="pp">${l2}</tspan></text>`; return; } };
+  // 라벨: 이름 + 화살표 · 변동률 / 평당가 — 촘촘한 곳(부산 · 서울의 구 등)도 이름이 빠지지 않게
+  // ① 먼저 모두 두 줄(+ 평당가)로 놓아 보고, 화면 안 모든 곳이 들어가면 그대로 쓴다
+  // ② 안 들어가면 한 줄(이름 + 변동률) 자리를 먼저 다 잡고, 둘레에 자리가 남는 곳만 두 줄로 늘린다. 한 줄 자리는
+  //    거래 규모(최근 3개월 거래 건수 × 평당가)가 큰 곳부터 / 면적이 작은 곳부터(작은 구는 비킬 자리가 없어서) 두 가지로 놓아 보고,
+  //    화면 안에 이름이 들어간 곳들의 거래 규모 합이 큰 쪽을 쓴다
+  const fs=(lv==="sido"?11.5:10.5)*u;
+  const tw=(t,f)=>{ let w=0; for(const c of t) w+=/[가-힣]/.test(c)?1:/[▲▼]/.test(c)?.8:c===" "?.3:.6; return w*f; };   // 글자 폭 어림(한글 1em)
+  // 이름표 자리 후보(이름표 폭 · 높이 배수): 제자리 → 위 · 아래 → 옆 → 대각선 → 조금 더 멀리(멀리는 한 줄만)
+  const OFF=[[0,-.5],[0,-1.05],[0,.1],[.6,-.5],[-.6,-.5],[0,1.15],[.55,-1.1],[-.55,-1.1],[.55,.1],[-.55,.1],[0,-1.65],[0,.7]];
   const PRI=k=>lv==="sido"&&k==="서울"?1:0;   // 시 · 도 화면에서는 서울 이름을 먼저 단다
-  items.filter(o=>lv==="sido"||o.e).sort((a,b)=>((b.k===SEL)-(a.k===SEL))||(PRI(b.k)-PRI(a.k))||(((b.e||{}).n||0)-((a.e||{}).n||0))).forEach(lab);
+  const ARS={}; if(lv==="sido") for(const k in (MP.sa||{})){ const sd=sidoOf(k); ARS[sd]=(ARS[sd]||0)+MP.sa[k]; }
+  const NT=e=>e?(at(e.n)||0):0, WT=e=>NT(e)*(PW(e)||1), AR=k=>(lv==="sido"?ARS[k]:(MP.sa||{})[k])||1e9;   // 끝 달까지 3개월 거래 건수 · 거래 규모 · 면적(㎢)
+  const ovl=(r,q)=>r.x0<q.x1&&r.x1>q.x0&&r.y0<q.y1&&r.y1>q.y0;
+  // 경기는 서울을 둘러싸 중심이 서울과 겹치므로 서울 남동쪽(용인 · 이천 부근)에 이름을 단다
+  const anc=o=>lv==="sido"&&o.k==="경기"?[(127.33-124)*803.8568606172173,(39-37.2)*1000]:[o.x,o.y];
+  const cand=(o,w,h,n)=>{ if(lv==="dong") return [[o.x,o.y-7*u-h],[o.x,o.y+8*u]]; const a=anc(o); return OFF.slice(0,n).map(([p,q])=>[a[0]+p*w,a[1]+q*h]); };
+  const pool=items.filter(o=>lv==="sido"||o.e).map(o=>{ const v=o.v, t1=`${o.nm} ${arrow(v)}${pctT(v)}`, l2=o.e?`평당 ${manT(PW(o.e))}`:"자료 없음", wc=tw(t1,fs)+fs*.55;
+    return {o,v,l2,wc,hc:fs*1.3,wf:Math.max(wc,tw(l2,fs*.92)+fs*.55),hf:fs*2.35}; });
+  const layout=(ord,two)=>{ const pl=[], LB=[];
+    for(const it of ord){ const w=two?it.wf:it.wc, h=two?it.hf:it.hc;
+      for(const [x,y] of cand(it.o,w,h,two?6:OFF.length)){ const r={x0:x-w/2,x1:x+w/2,y0:y,y1:y+h}; if(pl.some(q=>ovl(r,q))) continue; pl.push(r); LB.push({...it,r,x,y,two}); break; } }
+    return {pl,LB,sc:LB.reduce((t,l)=>t+(inV(l.o.x,l.o.y)?1+WT(l.o.e):0),0),miss:ord.filter(it=>inV(it.o.x,it.o.y)&&!LB.some(l=>l.o===it.o)).length}; };
+  const byN=(a,b)=>((b.o.k===SEL)-(a.o.k===SEL))||(PRI(b.o.k)-PRI(a.o.k))||(WT(b.o.e)-WT(a.o.e));
+  const byA=(a,b)=>((b.o.k===SEL)-(a.o.k===SEL))||(PRI(b.o.k)-PRI(a.o.k))||(AR(a.o.k)-AR(b.o.k))||byN(a,b);
+  // 한 줄로 잡은 배치에서 두 줄로 늘리기: 거래 규모가 큰 곳부터, 제자리 가까이만
+  const grow=Y=>{ Y.LB.sort(byN); Y.LB.forEach(L1=>{ for(const [x,y] of cand(L1.o,L1.wf,L1.hf,6)){ const r={x0:x-L1.wf/2,x1:x+L1.wf/2,y0:y,y1:y+L1.hf}; if(Y.pl.some(q=>q!==L1.r&&ovl(r,q))) continue; Y.pl.splice(Y.pl.indexOf(L1.r),1,r); Object.assign(L1,{r,x,y,two:true}); return; } }); return Y; };
+  let lay=layout(pool.slice().sort(byN),true);
+  if(lay.miss&&lv!=="dong"){ const f2=layout(pool.slice().sort(byA),true); if(!f2.miss) lay=f2; }
+  if(lay.miss) for(const c of [layout(pool.slice().sort(byN),false),...(lv==="dong"?[]:[layout(pool.slice().sort(byA),false)])]) if(c.sc>lay.sc) lay=grow(c);
+  const {LB}=lay;
+  LB.forEach(({o,v,l2,x,y,two})=>{ const l1=`<tspan class="nm">${esc(o.nm)}</tspan> <tspan class="${v>0?"up":v<0?"dn":"pp"}">${arrow(v)}${pctT(v)}</tspan>`;
+    s+=`<text class="lb" x="${x.toFixed(1)}" y="${(y+fs).toFixed(1)}" text-anchor="middle" style="font-size:${fs}px;stroke-width:${3.2*u}px">${l1}</text>`;
+    if(two) s+=`<text class="lb" x="${x.toFixed(1)}" y="${(y+fs*2.15).toFixed(1)}" text-anchor="middle" style="font-size:${fs*.92}px;stroke-width:${3.2*u}px"><tspan class="pp">${esc(l2)}</tspan></text>`; });
   if(zk<2.2) s+=`<text class="lb" x="${bx[0]+bw*.5}" y="${bx[1]+bh*.92}" text-anchor="middle" style="font-size:${9*u}px;stroke-width:${3*u}px"><tspan class="pp">울릉도 · 독도</tspan></text>`;
   s+=`</svg><div class="tip" hidden></div><div class="zc">${Z?`<span class="zb"><button type="button" data-zm="in" aria-label="확대"${Z.k>=KMAX?" disabled":""}>＋</button><button type="button" data-zm="out" aria-label="축소">－</button></span><button type="button" data-zm="reset">전체 보기</button>`:""}<span class="zh">${dWait?"동별 자료 불러오는 중…":COARSE?(lv==="sido"?"누르면 정보 · 두 손가락으로 벌려 확대":lv==="sgg"?"누르면 정보 · 더 벌리면 동별로 바뀝니다":"누르면 정보 · 점 하나 = 법정동"):(lv==="sido"?"지역을 누르면 시 · 군 · 구로 확대":lv==="sgg"?"더 확대하면 동별로 바뀝니다":"동별 · 점 하나 = 법정동")}</span></div>`;
   box.innerHTML=s; box.classList.toggle("zoomed",!!Z);
@@ -1751,7 +1780,7 @@ function draw(){
     if(d.moved){ commit(cur()); return; }
     if(e.type!=="pointerup"||Math.hypot(e.clientX-d.x,e.clientY-d.y)>5) return;
     if(e.pointerType!=="mouse"){ showTip(d.t,e.clientX,e.clientY,true); return; }   // 폰: 누르면 정보, 확대는 두 손가락으로
-    if(zk>=KMAX) return; const [px,py]=toSvg(e.clientX,e.clientY); zoomTo(px,py,zk<2.2?2.6:zk<7?Math.max(7.5,zk*2.2):zk*2); };
+    if(zk>=KMAX) return; const [px,py]=toSvg(e.clientX,e.clientY); zoomTo(px,py,zk<2.2?2.6:zk<7?Math.max(8,zk*2.2):zk*2); };   // 두 번째 누름(8배)은 서울 · 부산도 구 이름이 다 나오는 배율
   svg.addEventListener("pointerup",end); svg.addEventListener("pointercancel",end);
   svg.addEventListener("wheel",e=>{ if(!e.ctrlKey&&!Z) return; e.preventDefault(); tip.hidden=true;
     const dyy=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?400:1), f=Math.exp(-dyy*(e.ctrlKey?.01:.0025));
