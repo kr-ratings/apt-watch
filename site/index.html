@@ -1644,10 +1644,11 @@ $("#dl-units").addEventListener("click",async()=>{ const b=$("#dl-units"), t=b.l
 (()=>{
 // 요약 줄은 작은 sum.json 으로 먼저, 지도 자료(main.json · map.json)는 칸을 처음 펼칠 때 불러온다
 const q$=s=>document.querySelector(s);
-fetch("data/rt/sum.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{ if(!j||!j.c10||!q$("#rt-sum")||q$("#rt-sum").dataset.ok) return;
+fetch("data/rt/sum.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{ if(!j||!(j.c20||j.c10)||!q$("#rt-sum")||q$("#rt-sum").dataset.ok) return;
+  const Y=j.c20&&j.from20?20:10, C=Y===20?j.c20:j.c10, F=Y===20?j.from20:j.from;   // 20년 자료가 아직 없으면 10년
   const one=(nm,x)=>`${nm} <b style="color:${x>0?"var(--up)":x<0?"var(--down)":"inherit"}">${x==null?"–":(x>0?"▲":x<0?"▼":"")+(Math.abs(x)<10?Math.abs(x).toFixed(1):Math.round(Math.abs(x)))+"%"}</b>`;
-  q$("#rt-sum").innerHTML=`최근 10년 실거래가 상승률 ${one("서울",j.c10["서울"])} · ${one("경기",j.c10["경기"])} · ${one("5대 광역시",j.c10["5대광역시"])}`;
-  if(j.from) q$("#rt-sum").title=`'${j.from.slice(2,4)}.${j.from.slice(5)}~'${j.asof.slice(2,4)}.${j.asof.slice(5)} 같은 단지 반복거래 지수 기준`; }).catch(()=>{});
+  q$("#rt-sum").innerHTML=`실거래가 ${Y}년 누적 상승률('${F.slice(2,4)}→'${j.asof.slice(2,4)}) ${C["전국"]!=null?one("전국",C["전국"])+" · ":""}${one("서울",C["서울"])} · ${one("경기",C["경기"])} · ${one("5대 광역시",C["5대광역시"])}`;
+  q$("#rt-sum").title=`'${F.slice(2,4)}.${F.slice(5)}~'${j.asof.slice(2,4)}.${j.asof.slice(5)} 같은 단지 반복거래 지수 기준`; }).catch(()=>{});
 let RTL=false;
 q$("#rt-fold").addEventListener("toggle",async e=>{ if(!e.target.open||RTL) return; RTL=true; const box=q$("#rtmap"); box.innerHTML='<div class="placeholder" style="padding:40px 0;text-align:center;color:var(--muted)">불러오는 중…</div>';
   try{ const g=u=>fetch(u,{cache:"no-cache"}).then(r=>{ if(!r.ok) throw 0; return r.json(); });
@@ -1684,11 +1685,11 @@ function rankCls(items){ const v=items.filter(o=>o.v!=null).sort((a,b)=>b.v-a.v)
 const CC=c=>c==null?"var(--nodata)":`var(--r${c+1})`;
 function renderSum(){ const a=RT.levels.all&&RT.levels.all["전국"]; const v=chg(a);
   $("#rt-demo").hidden=!RT.demo;
-  // 접힌 칸 요약: 최근 10년 누적 상승률(지수 기준) — 서울 · 경기 · 5대 광역시
-  const cg=e=>e&&e.i&&NM>=120?(e.i[NM]/e.i[NM-120]-1)*100:null, L=RT.levels, gr=L.grp||{};
+  // 접힌 칸 요약: 20년 누적 상승률(지수 기준) — 전국 · 서울 · 경기 · 5대 광역시
+  const YK=NM>=240?240:NM, cg=e=>e&&e.i?(e.i[NM]/e.i[NM-YK]-1)*100:null, L=RT.levels, gr=L.grp||{};
   const one=(nm,x)=>`${nm} <b class="${x>0?"up":x<0?"dn":""}" style="color:${x>0?"var(--up)":x<0?"var(--down)":"inherit"}">${arrow(x)}${pctT(x)}</b>`;
-  $("#rt-sum").innerHTML=`최근 10년 실거래가 상승률 ${one("서울",cg(L.sido["서울"]))} · ${one("경기",cg(L.sido["경기"]))} · ${one("5대 광역시",cg(gr["5대광역시"]))}`;
-  $("#rt-sum").title=`${ymd(MS[NM-120]||MS[0])}~${ymd(MS[NM])} 같은 단지 반복거래 지수 기준`; void a; void v; }
+  $("#rt-sum").innerHTML=`실거래가 ${Math.round(YK/12)}년 누적 상승률('${MS[NM-YK].slice(2,4)}→'${MS[NM].slice(2,4)}) ${one("전국",cg(a))} · ${one("서울",cg(L.sido["서울"]))} · ${one("경기",cg(L.sido["경기"]))} · ${one("5대 광역시",cg(gr["5대광역시"]))}`;
+  $("#rt-sum").title=`${ymd(MS[NM-YK])}~${ymd(MS[NM])} 같은 단지 반복거래 지수 기준`; void v; }
 function draw(){
   const box=$("#rtmap"); const pj=MP.proj, LL=(lon,lat)=>[(lon-pj.lon0)*pj.kx,(pj.lat0-lat)*1000];
   const W=Math.max(300,Math.round(box.clientWidth||600)), H=Math.round(Math.min(760,Math.max(420,W*1.05)));
@@ -1874,8 +1875,8 @@ function renderK(){
   const perL=PER>0?`최근 ${PER/12}년`:PER===0?`${ymS(ALLM[a])} 이후`:`${ymS(ALLM[a])}~${ymS(ALLM[n])}`;
   if(hasCap){
     const rs=I.map(i=>R(i)), rmax=Math.max(...rs), rmin=Math.min(...rs), iMax=I[rs.indexOf(rmax)], iMin=I[rs.indexOf(rmin)], ravg=rs.reduce((a,b)=>a+b,0)/rs.length;
-    const K10=Math.max(0,N-120);   // 접힌 칸 요약: 최근 10년 상승률
-    $("#hm-sum").innerHTML=`최근 10년 아파트 시가총액 상승률 <b>${sgn(pct(CAP[N],CAP[K10]),0)}</b> · M2 상승률 <b>${sgn(pct(M2[N],M2[K10]),0)}</b>`;
+    const K10=Math.max(0,N-240);   // 접힌 칸 요약: 20년 누적 상승률
+    $("#hm-sum").innerHTML=`20년 누적 상승률('${ALLM[K10].slice(2,4)}→'${ALLM[N].slice(2,4)}) 아파트 시가총액 <b>${sgn(pct(CAP[N],CAP[K10]),0)}</b> · M2 <b>${sgn(pct(M2[N],M2[K10]),0)}</b>`;
     $("#hm-sum").title=`${ymL(ALLM[K10])} → ${ymL(ALLM[N])}${PV(ALLM[N])?" (끝 달 잠정)":""}`;
     $("#hm-k").innerHTML=`
     <div class="st"><span class="lb"><i style="background:var(--s1)"></i>아파트 시가총액(추정) · ${ymS(ALLM[n])}${PV(ALLM[n])}</span><span class="v">${fmt(CAP[n])}<small>조원</small></span><span class="s">1년 전 대비 <b class="${cls(pct(CAP[n],CAP[y]))}">${sgn(pct(CAP[n],CAP[y]))}</b> · ${perL} <b class="gr">${sgn(gC,0)}</b></span></div>
