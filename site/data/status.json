@@ -1,6 +1,15 @@
 {
- "generated": "2026-10-30 12:34",
+ "generated": "2026-10-30 12:39",
  "sources": {
+  "국토부 실거래가": {
+   "ok": true,
+   "latest": "202609",
+   "months": 4
+  },
+  "한국은행 ECOS": {
+   "ok": false,
+   "error": "접속 실패 · 저장된 값으로 계산"
+  },
   "청약홈": {
    "ok": true,
    "rows": 393,
@@ -11,16 +20,6 @@
     "bjd": 369,
     "none": 24
    }
-  },
-  "국토부 실거래가": {
-   "ok": true,
-   "latest": "202609",
-   "months": 27
-  },
-  "한국은행 ECOS": {
-   "ok": true,
-   "latest_idx": "2026-08",
-   "latest_m2": "2026-08"
   },
   "통계누리": {
    "ok": false,
