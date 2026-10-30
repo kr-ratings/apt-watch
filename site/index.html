@@ -1635,7 +1635,7 @@ $("#dl-units").addEventListener("click",async()=>{ const b=$("#dl-units"), t=b.l
     $("#un-note").textContent=`${ym(UN.months[n-1])}월 기준 · 전월 · 1년 전(${ym(UN.months[0])})과 비교`; }
   if(SUB){ const sd=[...new Set(SUB.rows.map(r=>r.sido))].sort((a,b)=>a.localeCompare(b,"ko")); $("#f-sido").insertAdjacentHTML("beforeend",sd.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("")); }
   $("#updated").textContent=st&&st.generated?`최종 수집 ${st.generated} KST`:"수집 시각 정보 없음";
-  if(st&&st.sources){ $("#status").innerHTML=Object.entries(st.sources).map(([k,v])=>`<span class="src ${v.ok?"":"bad"}" title="${esc(v.error||"")}"><span class="dot"></span>${esc(k)}${v.ok?"":" 수집 실패(직전 값 표시)"}</span>`).join(""); }
+  if(st&&st.sources){ $("#status").innerHTML=Object.entries(st.sources).map(([k,v])=>`<span class="src ${v.ok?"":"bad"}" title="${v.ok?"":"직전 값 표시"}"><span class="dot"></span>${esc(k)}</span>`).join(""); }
   renderKPIs(); initSup(); renderSub(); renderUn(); renderUnits();
 })();
 </script>
