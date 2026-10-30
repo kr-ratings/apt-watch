@@ -1,11 +1,11 @@
 {
- "generated": "2026-10-30 11:24",
+ "generated": "2026-10-30 11:37",
  "sources": {
   "국토부 실거래가": {
    "ok": true,
    "latest": "202609",
-   "months": 30,
-   "backfill_left": 40
+   "months": 21,
+   "backfill_left": 23
   },
   "한국은행 ECOS": {
    "ok": true,
