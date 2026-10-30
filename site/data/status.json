@@ -1,9 +1,11 @@
 {
- "generated": "2026-10-30 11:20",
+ "generated": "2026-10-30 11:24",
  "sources": {
   "국토부 실거래가": {
-   "ok": false,
-   "error": "공공데이터포털 접속이 안 됨 · 저장된 자료 표시"
+   "ok": true,
+   "latest": "202609",
+   "months": 30,
+   "backfill_left": 40
   },
   "한국은행 ECOS": {
    "ok": true,
