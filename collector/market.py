@@ -1,13 +1,16 @@
 """실거래가 지도 · 아파트 시가총액(추정) vs M2(통화량) 자료.
 
 1) 국토교통부 아파트 매매 실거래가(상세) → 달별 요약 cache/rt/YYYYMM.json.gz
-   - DATA_GO_KR_KEY 가 있을 때만 받는다: 최근 4개월(신고 30일 · 해제 반영)과 빠진 달.
+   - DATA_GO_KR_KEY 가 있을 때만 받는다: 최근 4개월(신고 30일 · 해제 반영) · 빠진 달 · 옛 형식 달(시간 한도 안에서).
    - 키 · 요청 주소는 어떤 출력(로그 포함)에도 남기지 않는다(clean()).
-   - 한 달 파일: {"ym", "apt": {단지: [시도|시군구|동, 전용 평당가 중위(만원), 건수]},
+   - 한 달 파일(새 형식 v2): {"ym", "v": 2, "u": {단지: [시도|시군구|동, [[전용면적, 층, 거래금액(만원)], ...]]},
                   "dong": {시도|시군구|동: [건수, 거래금액 합(만원), 전용면적 합, 공급면적(환산) 합]}}
+     (옛 형식은 "u" 대신 "apt": {단지: [시도|시군구|동, 전용 평당가 중위, 건수]})
 2) 지역별 달 지수 · 평당가 → site/data/rt/main.json(전국 · 시도 · 시군구), d00~.json(법정동, 시도별), sum.json
-   - 지수: 같은 단지 반복거래 고정효과 회귀(단지-달 하나 = 가중 1, 달 사이 매끄럽게) — 한국부동산원
-     아파트 매매 실거래가격지수(반복매매)와 서울 · 부산 15년 누적이 1~2% 안으로 맞는 방식.
+   - 지수: 같은 집 반복매매 — 같은 단지 · 같은 전용면적 · 같은 층을 같은 집으로 보고 연이은 두 거래의 가격 차이로
+     달 지수를 맞춘다(한 달 여러 거래는 평균, 시 · 도 지수와 2배 넘게 어긋나는 쌍은 제외, 달 사이 매끄럽게).
+     한국부동산원 아파트 매매 실거래가격지수와 같은 원리 — 서울 20년 시험에서 1년 변동률 오차 평균 0.7%p
+     (단지 단위 고정효과 방식은 1.6%p). 모든 달이 새 형식일 때만 쓰고, 옛 형식 달이 섞이면 단지 고정효과 방식.
      2006년 1월(실거래가 공개 시작)부터 — 지도 기간 버튼은 최대 20년.
    - 평당가: 끝 달까지 3개월 [거래금액 합 ÷ 면적 합]. 공급면적은 청약홈 분양 주택형의 공급 ÷ 전용 비율로 환산.
    - 지역별 세대수 가중: 법정동 평당가 × K-apt 동별 세대수(공공임대 제외, cache/kapt_market.json).
@@ -87,6 +90,15 @@ def write_json(path: Path, obj) -> None:
 
 # ── 1) 실거래 달별 요약 ─────────────────────────────────────────────
 
+def is_v2(f: Path) -> bool:
+    """거래 한 건씩("u")이 들어 있는 새 형식인지(파일 앞부분만 풀어 본다)."""
+    try:
+        with gzip.open(f, "rt", encoding="utf-8") as fh:
+            return '"v":2' in fh.read(64)
+    except OSError:
+        return False
+
+
 def codes() -> dict:
     out = {}
     for sd, c5, umd, sgg, dong, ri in json.loads((HERE / "bjd_units.json").read_text(encoding="utf-8")):
@@ -102,7 +114,8 @@ def rt_fetch(status: dict) -> None:
     allm, m = [], FIRST
     while m <= end:
         allm.append(m); m = nxt(m)
-    want = sorted({*allm[-4:], *[x for x in allm if x not in have]}, reverse=True)   # 최근 달부터(최근 4개월은 매번 다시)
+    old = [x for x in allm if x in have and x not in allm[-4:] and not is_v2(RTC / f"{x}.json.gz")]   # 거래 한 건씩이 없는 옛 형식 달
+    want = sorted({*allm[-4:], *[x for x in allm if x not in have]}, reverse=True) + sorted(old, reverse=True)   # 최근 달 · 빠진 달 → 옛 형식 달
     if not KEY:
         log("실거래가: 공공데이터포털 키(DATA_GO_KR_KEY)가 없어 저장된 자료로만 만듦")
         return
@@ -162,7 +175,7 @@ def rt_fetch(status: dict) -> None:
             break
         if any(v is None for _, v in res):
             log("실거래가: 빠진 지역이 있어 저장 안 함", ym); continue
-        seen, apt, dong = set(), {}, {}
+        seen, u, dong = set(), {}, {}
         for c, rows in res:
             for x in rows:
                 if (x.get("cdealType") or "").strip() in ("O", "o"):
@@ -180,15 +193,18 @@ def rt_fetch(status: dict) -> None:
                 seen.add(sig)
                 s, g = CODE[c]; key = f"{s}|{g}|{d}"
                 a = x.get("aptSeq") or f"{c}|{d}|{x.get('jibun', '')}|{x.get('aptNm', '')}"
-                apt.setdefault(a, [key, []])[1].append(amt / ar * 3.3058)
+                try:
+                    fl = int(x.get("floor") or 0)
+                except ValueError:
+                    fl = 0
+                u.setdefault(a, [key, []])[1].append([round(ar, 2), fl, int(round(amt))])   # 같은 집(단지 · 전용면적 · 층) 반복매매 지수용
                 q = dong.setdefault(key, [0, 0.0, 0.0, 0.0]); q[0] += 1; q[1] += amt; q[2] += ar; q[3] += ar * sup_ratio(ar)
-        out = {"ym": ym, "apt": {a: [k, round(st.median(v), 1), len(v)] for a, (k, v) in apt.items()},
-               "dong": {k: [q[0], round(q[1]), round(q[2], 1), round(q[3], 1)] for k, q in dong.items()}}
+        out = {"ym": ym, "v": 2, "u": u, "dong": {k: [q[0], round(q[1]), round(q[2], 1), round(q[3], 1)] for k, q in dong.items()}}
         tmp = RTC / f"{ym}.json.gz.tmp"; tmp.write_bytes(gzip.compress(json.dumps(out, ensure_ascii=False, separators=(",", ":")).encode(), mtime=0))
         os.replace(tmp, RTC / f"{ym}.json.gz"); done.append(ym)
     log("실거래가: 받은 달", len(done), "/", len(want), "호출", calls[0], f"{time.time() - t0:.0f}초")
     ok = not stop[0] and recent <= set(done)                  # 최근 4개월을 다 받았으면 정상(지난 달 채우기는 이어서)
-    left = len(set(allm) - {f.name[:6] for f in RTC.glob("*.json.gz")})
+    left = len([x for x in allm if not (RTC / f"{x}.json.gz").exists() or not is_v2(RTC / f"{x}.json.gz")])
     status["sources"]["국토부 실거래가"] = {"ok": ok, "latest": max(done) if done else None, "months": len(done),
                                        **({"backfill_left": left} if left else {}),
                                        **({} if ok else {"error": "일부 달을 받지 못함 · 받은 달까지 반영"})}
@@ -225,37 +241,101 @@ def rt_build(status: dict) -> dict | None:
         s, g, d = k.split("|")
         base = (("all", "전국"), ("sido", SIDO_OF(s)), ("sgg", f"{s}|{g}"), ("dong", k))
         return base + ((("grp", "5대광역시"),) if s in METRO else ())
+    # 지수 방식: 모든 달이 거래 한 건씩(새 형식)이면 같은 집 반복매매, 옛 형식이 섞여 있으면 단지 고정효과(예전 방식)
+    rs = all(is_v2(f) for f in files)
     obs, adong, sums = {}, {}, {}
+    UH, UT, UP, UD, DID = [], [], [], [], {}          # 거래마다: 집(단지 · 전용면적 · 층) 해시, 달, ln 금액, 법정동 번호
     for f in files:
         d = json.loads(gzip.decompress(f.read_bytes())); t = TI[d["ym"]]
-        for a, (k, p, n) in d["apt"].items():
-            if p > 0:
-                obs.setdefault(a, []).append((t, math.log(p))); adong[a] = k
+        if rs:
+            for a, (k, trs) in d["u"].items():
+                di = DID.setdefault(k, len(DID))
+                for ar, fl, amt in trs:
+                    UH.append(hash((a, ar, fl))); UT.append(t); UP.append(math.log(amt)); UD.append(di)
+        else:
+            if "u" in d:
+                apt = {a: [k, st.median([amt / ar * 3.3058 for ar, fl, amt in trs])] for a, (k, trs) in d["u"].items()}
+            else:
+                apt = {a: [k, p] for a, (k, p, n) in d["apt"].items()}
+            for a, (k, p) in apt.items():
+                if p > 0:
+                    obs.setdefault(a, []).append((t, math.log(p))); adong[a] = k
         for k, q in d["dong"].items():
             for lv, kk in lvkeys(k):
                 arr = sums.get((lv, kk))
                 if arr is None:
                     arr = sums[(lv, kk)] = np.zeros((T, 4))
                 arr[t] += q
-    # 지수: 단지 고정효과 회귀 — ln 평당가(단지, 달) = x_달 + 단지 효과, 단지 안에서 평균을 뺀 정규방정식을 지역별로 더함
-    ALPHA = 2.0
+    ALPHA = 2.0                                        # 달 사이를 매끄럽게(거래가 적은 지역이 크게 출렁이지 않게)
     Dm = np.zeros((T - 1, T)); Dm[np.arange(T - 1), np.arange(T - 1)] = -1; Dm[np.arange(T - 1), np.arange(1, T)] = 1
     Pn = Dm.T @ Dm
-    groups = {}
-    for a, ob in obs.items():
-        if len(ob) >= 2:
-            for lv, kk in lvkeys(adong[a]):
-                groups.setdefault((lv, kk), []).append(a)
     idx = {}
-    for (lv, kk), apts in groups.items():
-        if sum(len(obs[a]) for a in apts) < (20 if lv == "dong" else 30):
-            continue
-        A = np.zeros((T, T)); b = np.zeros(T)
-        for a in apts:
-            ob = obs[a]; t = np.fromiter((o[0] for o in ob), int); lp = np.fromiter((o[1] for o in ob), float)
-            A[np.ix_(t, t)] -= 1.0 / len(ob); A[t, t] += 1.0; b[t] += lp - lp.mean()
-        M = A + ALPHA * Pn; x = np.zeros(T); x[1:] = np.linalg.solve(M[1:, 1:], b[1:])
-        idx[(lv, kk)] = x
+    if rs:
+        # 같은 집 반복매매: 같은 단지 · 같은 전용면적 · 같은 층을 같은 집으로 보고, 연이은 두 거래(다른 달)의 ln 가격 차이를
+        # ln 지수(뒤 달) − ln 지수(앞 달)로 맞추는 회귀(한국부동산원 실거래가격지수와 같은 반복매매 원리)
+        H = np.array(UH, np.int64); Tt = np.array(UT, np.int32); P = np.array(UP); Dd = np.array(UD, np.int32)
+        del UH, UT, UP, UD
+        o = np.lexsort((Tt, H)); H, Tt, P, Dd = H[o], Tt[o], P[o], Dd[o]
+        # 같은 집이 한 달에 여러 번 거래되면(같은 층 · 같은 면적 다른 동 포함) ln 가격을 평균해 한 값으로 — 어느 거래를 잇느냐에 따라 치우치지 않게
+        new = np.r_[True, (H[1:] != H[:-1]) | (Tt[1:] != Tt[:-1])]; g = np.cumsum(new) - 1
+        P = np.bincount(g, P) / np.bincount(g); H, Tt, Dd = H[new], Tt[new], Dd[new]
+        same = H[1:] == H[:-1]
+        PI, PJ, PR, PD = Tt[:-1][same].astype(np.int64), Tt[1:][same].astype(np.int64), (P[1:] - P[:-1])[same], Dd[1:][same]
+        del H, Tt, P, Dd, g, new
+        dkeys = [None] * len(DID)
+        for k, i in DID.items():
+            dkeys[i] = k
+        LV = {}
+        for lv in ("all", "sido", "sgg", "dong", "grp"):
+            names, mp = {}, np.full(len(dkeys), -1, np.int64)
+            for i, k in enumerate(dkeys):
+                kk = dict(lvkeys(k)).get(lv)
+                if kk is not None:
+                    mp[i] = names.setdefault(kk, len(names))
+            LV[lv] = (list(names), mp)
+
+        def solve(I, J, R):
+            K = np.bincount(I * T + J, minlength=T * T).reshape(T, T).astype(float)
+            A = np.diag(K.sum(0) + K.sum(1)) - K - K.T
+            b = np.bincount(J, R, T) - np.bincount(I, R, T)
+            M = A + ALPHA * Pn; x = np.zeros(T); x[1:] = np.linalg.solve(M[1:, 1:], b[1:]); return x
+
+        def regions(lv, keep):
+            names, mp = LV[lv]; reg = mp[PD]; m = keep & (reg >= 0)
+            ri, I, J, R = reg[m], PI[m], PJ[m], PR[m]; o = np.argsort(ri, kind="stable"); ri, I, J, R = ri[o], I[o], J[o], R[o]
+            cut = np.flatnonzero(np.diff(ri)) + 1
+            for a0, a1 in zip(np.r_[0, cut], np.r_[cut, len(ri)]):
+                if a1 > a0:
+                    yield ri[a0], names[ri[a0]], I[a0:a1], J[a0:a1], R[a0:a1]
+        # 1단계(시 · 도): 그 시 · 도 지수와 ln 0.7 넘게(2배 넘게) 어긋나는 쌍은 오기 · 특수 거래로 보고 뺀다
+        # (시 · 군 · 구 기준으로 거르면 재건축 등 실제로 크게 오른 단지까지 빠져 긴 기간 상승률이 틀어짐 — 서울 시험)
+        allk = np.ones(len(PR), bool); X1 = np.zeros((len(LV["sido"][0]), T))
+        for r, _, I, J, R in regions("sido", allk):
+            X1[r] = solve(I, J, R)
+        rg = LV["sido"][1][PD]
+        keep = (rg < 0) | (np.abs(PR - (X1[np.maximum(rg, 0), PJ] - X1[np.maximum(rg, 0), PI])) < 0.7)
+        log("실거래가: 같은 집 반복매매 쌍", len(PR), "· 이상치로 뺀 쌍", int((~keep).sum()))
+        for lv in ("all", "sido", "sgg", "dong", "grp"):
+            for _, kk, I, J, R in regions(lv, keep):
+                if len(R) >= (20 if lv == "dong" else 30):
+                    idx[(lv, kk)] = solve(I, J, R)
+    else:
+        # 예전 방식(옛 형식 달이 섞여 있을 때만): 단지 고정효과 회귀 — ln 평당가(단지, 달) = x_달 + 단지 효과
+        log("실거래가: 옛 형식 달이 있어 단지 고정효과 지수로 만듦")
+        groups = {}
+        for a, ob in obs.items():
+            if len(ob) >= 2:
+                for lv, kk in lvkeys(adong[a]):
+                    groups.setdefault((lv, kk), []).append(a)
+        for (lv, kk), apts in groups.items():
+            if sum(len(obs[a]) for a in apts) < (20 if lv == "dong" else 30):
+                continue
+            A = np.zeros((T, T)); b = np.zeros(T)
+            for a in apts:
+                ob = obs[a]; t = np.fromiter((o[0] for o in ob), int); lp = np.fromiter((o[1] for o in ob), float)
+                A[np.ix_(t, t)] -= 1.0 / len(ob); A[t, t] += 1.0; b[t] += lp - lp.mean()
+            M = A + ALPHA * Pn; x = np.zeros(T); x[1:] = np.linalg.solve(M[1:, 1:], b[1:])
+            idx[(lv, kk)] = x
     # 3개월 창 평당가
     def win3(arr):
         c = np.cumsum(np.vstack([np.zeros((1, 4)), arr]), axis=0); w = c[3:] - c[:-3]
