@@ -448,10 +448,12 @@ footer .ct{white-space:nowrap}
 #mk .rt{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
 #mk .rt-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px}
 #mk .rt-bar .seg button{padding:5px 8px;white-space:nowrap}
-@media (max-width:560px){#mk .rt-bar .seg{display:grid;grid-template-columns:repeat(3,1fr);width:100%}
-#mk .rt-bar .seg button{text-align:center;border-left:0;border-top:1px solid var(--line)}
-#mk .rt-bar .seg button:nth-child(-n+3){border-top:0}
-#mk .rt-bar .seg button:not(:nth-child(3n+1)){border-left:1px solid var(--line)}}
+@media (max-width:560px){#mk .rt-bar #rt-seg{display:grid;grid-template-columns:repeat(3,1fr);width:100%}
+#mk .rt-bar #rt-seg button{text-align:center;border-left:0;border-top:1px solid var(--line)}
+#mk .rt-bar #rt-seg button:nth-child(-n+3){border-top:0}
+#mk .rt-bar #rt-seg button:not(:nth-child(3n+1)){border-left:1px solid var(--line)}}
+#mk .rt-sty{display:inline-flex;align-items:center;gap:7px;font-size:.76rem;color:var(--muted)}
+#mk .rt-sty .seg button{padding:4px 9px;font-size:.76rem}
 #mk .rt-leg{display:flex;flex-wrap:wrap;align-items:center;gap:5px 12px;font-size:.76rem;color:var(--muted)}
 #mk .rt-leg .lt{color:var(--fg);font-weight:600}
 #mk .rt-leg .k{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -807,6 +809,7 @@ footer .ct{white-space:nowrap}
             <span aria-hidden="true">~</span>
             <select id="rt-ey" aria-label="끝 연도"></select><select id="rt-em" aria-label="끝 월"></select>
           </div>
+          <div class="rt-sty"><span>표현 방식</span><div class="seg" role="group" aria-label="표현 방식" id="rt-sty"><button type="button" data-v="glow" aria-pressed="false">번짐</button><button type="button" data-v="fill" aria-pressed="true">면 칠하기</button></div></div>
           <div class="rt-leg" id="rt-leg"></div>
         </div>
         <div class="rtmap" id="rtmap"></div>
@@ -1653,7 +1656,7 @@ function initRT(RD){ const MP=RD.map, RT=RD.rt, DP=RD.dpts;
 const $=s=>document.querySelector(s), esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt=n=>n==null?"–":Number(n).toLocaleString("ko-KR");
 const PL={1:"1개월",3:"3개월",6:"6개월",12:"1년",36:"3년",60:"5년",120:"10년",180:"15년",240:"20년"};
-let P=12, Z=null, SEL=null;   // P: 버튼 기간(개월), -1 = 시작 · 끝 직접 지정
+let P=12, Z=null, SEL=null, STY="fill";   // STY: 표현 방식(fill 면 칠하기 · glow 번짐)   // P: 버튼 기간(개월), -1 = 시작 · 끝 직접 지정
 const MS=RT.months, NM=MS.length-1; let QE=NM, QS=Math.max(0,NM-12);   // 고른 구간의 시작 · 끝 달(MS 순번)
 const rngL=()=>P>0?PL[P]:`${ymd(MS[QS])}~${ymd(MS[QE])}`;
 const at=a=>a?a[QE]:null;
@@ -1708,7 +1711,9 @@ function draw(){
   else items=Object.entries(DP).map(([k,[lon,lat]])=>{ const [x,y]=LL(lon,lat); return {k,x,y}; }).filter(o=>inV(o.x,o.y,20*u)).map(o=>({...o,v:chg(L.dong[o.k]),e:L.dong[o.k],nm:o.k.split("|")[2]}));
   const dWait=lv==="dong"&&needDong(items.map(o=>o.k));
   const {C,R}=rankCls(items);
-  const fillOf=k=>{ if(lv==="sido"){ const c=C.get(sidoOf(k)); return CC(c); } if(lv==="sgg") return CC(C.get(k)); return "var(--land)"; };
+  // 번짐: 경계 안은 옅게만 칠하고, 지역 대표점에서 같은 색이 둥글게 번지게(청약 지도의 번짐과 같은 방식)
+  const GL=STY==="glow", soft=c=>c==null?"var(--nodata)":`color-mix(in oklab,var(--r${c+1}) 38%,var(--land))`;
+  const fillOf=k=>{ if(lv==="dong") return "var(--land)"; const c=lv==="sido"?C.get(sidoOf(k)):C.get(k); return GL?soft(c):CC(c); };
   let s=`<svg viewBox="${vb.map(v=>v.toFixed(1)).join(" ")}" width="${W}" height="${H}" role="img" aria-label="아파트 실거래가 ${rngL()} 변동률 지도">`;
   if(MP.nk) s+=`<path class="nk" d="${MP.nk}" vector-effect="non-scaling-stroke"/>`;
   const bx=LL(129.08,38.68), bw=1.0*pj.kx, bh=600, ub=MP.ul.b, sub=d=>d.split("M").filter(Boolean);
@@ -1717,6 +1722,11 @@ function draw(){
   const op=1;   // 색은 붙은 칸끼리도 구분되는 차분한 톤으로 골라 그대로 칠한다
   for(const k in PY){ if(k==="경북|울릉군"){ if(zk<2.2) sub(MP.ul.d).forEach(r=>{ const [tx,ty]=ulT(r); s+=`<path class="rg" data-r="${esc(k)}" d="M${r}" transform="translate(${tx.toFixed(0)} ${ty.toFixed(0)})" style="fill:${fillOf(k)};fill-opacity:${op}" vector-effect="non-scaling-stroke"/>`; }); continue; }
     s+=`<path class="rg" data-r="${esc(k)}" d="${PY[k]}" fill-rule="evenodd" style="fill:${fillOf(k)};fill-opacity:${op}" vector-effect="non-scaling-stroke"/>`; }
+  if(GL){ s+=`<defs>${[1,2,3,4,5].map(i=>`<radialGradient id="rtg${i}"><stop offset="0" style="stop-color:var(--r${i});stop-opacity:.95"/><stop offset=".5" style="stop-color:var(--r${i});stop-opacity:.5"/><stop offset="1" style="stop-color:var(--r${i});stop-opacity:0"/></radialGradient>`).join("")}</defs>`;
+    // 번짐 크기: 시 · 군 · 구 넓이(한 변)에 비례, 법정동은 약 2km(화면에서 너무 작지 않게)
+    const G=lv==="dong"?items.filter(o=>C.get(o.k)!=null).map(o=>({x:o.x,y:o.y,c:C.get(o.k),r:Math.max(18,10*u)}))
+      :Object.keys(PY).filter(k=>k!=="경북|울릉군"&&MP.pts[k]).map(k=>{ const c=lv==="sido"?C.get(sidoOf(k)):C.get(k); if(c==null) return null; const [x,y]=MP.pts[k]; return {x,y,c,r:Math.max(((MP.sa||{})[k]||20)*.9,12*u)}; }).filter(Boolean);
+    G.filter(o=>inV(o.x,o.y,o.r)).sort((a,b)=>b.r-a.r).forEach(o=>{ s+=`<circle cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="${o.r.toFixed(1)}" fill="url(#rtg${o.c+1})" pointer-events="none"/>`; }); }
   MP.sido.forEach(g=>{ s+=`<path class="sd" d="${g.d}" vector-effect="non-scaling-stroke"/>`; });
   if(lv==="dong") items.forEach(o=>{ s+=`<circle class="dg" data-d="${esc(o.k)}" cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="${(o.e?5.5:3.5)*u}" style="fill:${CC(C.get(o.k))}" vector-effect="non-scaling-stroke"/>`; });
   // 라벨: 이름 + 화살표 · 변동률 / 평당가 — 촘촘한 곳(부산 · 서울의 구 등)도 이름이 빠지지 않게
@@ -1759,7 +1769,7 @@ function draw(){
   // 범례 범위 숫자도 지도 이름표처럼 오름은 빨강 · 내림은 파랑
   const vT=v=>`<span class="${v>0?"up":v<0?"dn":""}">${arrow(v)}${pctT(v)}</span>`;
   const rng=a=>a.length?(a.length===1||Math.abs(a[0]-a[a.length-1])<.05?vT(a[0]):`${vT(a[a.length-1])} ~ ${vT(a[0])}`):"–";
-  $("#rt-leg").innerHTML=`<span class="lt">${rngL()} 변동률 · 화면 안 ${lv==="sido"?"시 · 도":lv==="sgg"?"시 · 군 · 구":"법정동"}끼리 순위</span>${R.map((a,i)=>`<span class="k"><i style="background:var(--r${i+1})"></i>${["상위 20%","20~40%","40~60%","60~80%","하위 20%"][i]} <span>(${rng(a)})</span></span>`).join("")}`;
+  $("#rt-leg").innerHTML=`<span class="lt">${rngL()} 변동률 · 화면 안 ${lv==="sido"?"시 · 도":lv==="sgg"?"시 · 군 · 구":"법정동"}끼리 순위</span>${R.map((a,i)=>`<span class="k"><i style="background:${GL?`radial-gradient(circle,var(--r${i+1}) 0,color-mix(in srgb,var(--r${i+1}) 50%,transparent) 50%,transparent 80%),${soft(i)}`:`var(--r${i+1})`}"></i>${["상위 20%","20~40%","40~60%","60~80%","하위 20%"][i]} <span>(${rng(a)})</span></span>`).join("")}`;
   // 확대 · 이동(사이트 청약 지도와 같은 조작)
   const svg=box.querySelector("svg"), tip=box.querySelector(".tip");
   const zoomTo=(cx,cy,k)=>{ Z=k<=1.01?null:{cx,cy,k:Math.min(KMAX,k)}; draw(); };
@@ -1806,8 +1816,9 @@ function draw(){
     tip.style.left=left+"px"; tip.style.top=Math.max(0,top)+"px"; }
   svg.addEventListener("pointermove",e=>{ if(e.pointerType==="touch"||box.classList.contains("panning")) return; showTip(e.target,e.clientX,e.clientY,false); });
   svg.addEventListener("pointerleave",e=>{ if(e.pointerType==="mouse") tip.hidden=true; });
-  $("#rt-foot").innerHTML=`<b>색</b> = 지금 화면에 보이는 지역끼리 ${rngL()} 상승률 순위(상위 20%씩 진한 분홍 · 연분홍 · 회색 · 연하늘 · 하늘). 확대하거나 기간을 바꾸면 다시 매깁니다. <b>평당가</b> = 공급면적 3.3㎡당, 끝 달까지 3개월(${ymd(MS[Math.max(0,QE-2)])}~${ymd(MS[QE])}) 실거래 기준. 법정동마다 실거래 평균(거래금액 합 ÷ 면적 합)을 낸 뒤, 시 · 군 · 구와 시 · 도는 그 동에 있는 아파트 세대수(K-apt, 공공임대 제외)로 가중 평균한 추정치입니다. 거래가 몰린 곳에 끌려가지 않고 지역 아파트 전체의 가격 수준을 보이기 위해서이며, 거래 합산 평균(그 지역 거래 전체의 거래금액 합 ÷ 면적 합 — 한국부동산원 '아파트 매매 실거래 평균가격'과 같은 방식)은 마우스를 올리거나(폰은 누르면) 함께 나옵니다. 실거래 자료에는 전용면적만 있어, 청약홈 분양 주택형의 공급 ÷ 전용 면적 비율로 공급면적을 환산했습니다(전용 59㎡ ≈ 공급 82㎡ · 25평, 84㎡ ≈ 111㎡ · 34평). 오래된 단지는 실제 공급면적이 조금 작아 평당가가 약간 낮게 나올 수 있습니다. <b>변동률</b> = 시작 달 → 끝 달 사이 달별 지수의 변화. 지수는 같은 단지가 다시 거래된 가격 차이로 만듭니다(한국부동산원 실거래가격지수와 같은 반복매매 방식 · 거래가 적은 달은 앞뒤 달과 매끄럽게 이음 · 해제 거래 제외). 출처: 국토교통부 아파트 매매 실거래가(공공데이터포털), 경계: 통계청 SGIS · vuski/admdongkor, 법정동 대표점: 도로명주소 행정구역도.`;
+  $("#rt-foot").innerHTML=`<b>색</b> = 지금 화면에 보이는 지역끼리 ${rngL()} 상승률 순위(상위 20%씩 진한 분홍 · 연분홍 · 회색 · 연하늘 · 하늘). 확대하거나 기간을 바꾸면 다시 매깁니다. <b>번짐</b>으로 보면 지역 가운데서 같은 색이 옅게 번집니다(번짐 크기 = 시 · 군 · 구 넓이, 법정동은 약 2km). <b>평당가</b> = 공급면적 3.3㎡당, 끝 달까지 3개월(${ymd(MS[Math.max(0,QE-2)])}~${ymd(MS[QE])}) 실거래 기준. 법정동마다 실거래 평균(거래금액 합 ÷ 면적 합)을 낸 뒤, 시 · 군 · 구와 시 · 도는 그 동에 있는 아파트 세대수(K-apt, 공공임대 제외)로 가중 평균한 추정치입니다. 거래가 몰린 곳에 끌려가지 않고 지역 아파트 전체의 가격 수준을 보이기 위해서이며, 거래 합산 평균(그 지역 거래 전체의 거래금액 합 ÷ 면적 합 — 한국부동산원 '아파트 매매 실거래 평균가격'과 같은 방식)은 마우스를 올리거나(폰은 누르면) 함께 나옵니다. 실거래 자료에는 전용면적만 있어, 청약홈 분양 주택형의 공급 ÷ 전용 면적 비율로 공급면적을 환산했습니다(전용 59㎡ ≈ 공급 82㎡ · 25평, 84㎡ ≈ 111㎡ · 34평). 오래된 단지는 실제 공급면적이 조금 작아 평당가가 약간 낮게 나올 수 있습니다. <b>변동률</b> = 시작 달 → 끝 달 사이 달별 지수의 변화. 지수는 같은 단지가 다시 거래된 가격 차이로 만듭니다(한국부동산원 실거래가격지수와 같은 반복매매 방식 · 거래가 적은 달은 앞뒤 달과 매끄럽게 이음 · 해제 거래 제외). 출처: 국토교통부 아파트 매매 실거래가(공공데이터포털), 경계: 통계청 SGIS · vuski/admdongkor, 법정동 대표점: 도로명주소 행정구역도.`;
 }
+$("#rt-sty").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; STY=b.dataset.v; $("#rt-sty").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); if($("#rt-fold").open) draw(); });
 $("#rt-seg").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; P=+b.dataset.v; QE=NM; QS=Math.max(0,NM-P); syncR(); $("#rt-seg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); renderSum(); if($("#rt-fold").open) draw(); });
 // 시작 · 끝 달 직접 지정 — 버튼을 누르면 이 칸도 바뀌고, 여기서 바꾸면 맞는 버튼만 눌린 상태로 남는다
 const RY0=+MS[0].slice(0,4), RY1=+MS[NM].slice(0,4), RR={sy:$("#rt-sy"),sm:$("#rt-sm"),ey:$("#rt-ey"),em:$("#rt-em")};
