@@ -442,9 +442,9 @@ footer .ct{white-space:nowrap}
 :root[data-theme="dark"] #mk{--s1:#7f9cff;--s2:#f08a4b;--s1-fill:rgba(127,156,255,.12)}
 #mk > section{min-width:0}
 #mk .hk .st{font-size:inherit;font-weight:inherit;padding:0 0 10px;border:0;border-bottom:1px solid var(--line);border-radius:0;white-space:normal;color:inherit}   /* 사이트의 청약 결과 표시(.st)와 이름이 같아 되돌림 */
-#mk{--r1:#e49ea6; --r2:#f1c5ca; --r3:#eaeaec; --r4:#b8d2f0; --r5:#8fb6e5; --land:#eef0f3; --land2:#f4f5f7; --bd:#b9c0cc; --bd2:#d3d8e0; --edge:#ffffff; --nodata:#f8f8fa}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #mk{--r1:#8a4a56; --r2:#5e4248; --r3:#3a404b; --r4:#36506e; --r5:#44699a; --land:#232b38; --land2:#1c222d; --bd:#4a5468; --bd2:#343d4e; --edge:#11151d; --nodata:#1d232d}}
-:root[data-theme="dark"] #mk{--r1:#8a4a56; --r2:#5e4248; --r3:#3a404b; --r4:#36506e; --r5:#44699a; --land:#232b38; --land2:#1c222d; --bd:#4a5468; --bd2:#343d4e; --edge:#11151d; --nodata:#1d232d}
+#mk{--g1:#d5606f; --g2:#eb9aa4; --g3:#d4d7dd; --g4:#8fb7e6; --g5:#4f8ad3; --r1:#e49ea6; --r2:#f1c5ca; --r3:#eaeaec; --r4:#b8d2f0; --r5:#8fb6e5; --land:#eef0f3; --land2:#f4f5f7; --bd:#b9c0cc; --bd2:#d3d8e0; --edge:#ffffff; --nodata:#f8f8fa}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #mk{--g1:#c25467; --g2:#86505c; --g3:#4a515e; --g4:#3f6898; --g5:#5287cf; --r1:#8a4a56; --r2:#5e4248; --r3:#3a404b; --r4:#36506e; --r5:#44699a; --land:#232b38; --land2:#1c222d; --bd:#4a5468; --bd2:#343d4e; --edge:#11151d; --nodata:#1d232d}}
+:root[data-theme="dark"] #mk{--g1:#c25467; --g2:#86505c; --g3:#4a515e; --g4:#3f6898; --g5:#5287cf; --r1:#8a4a56; --r2:#5e4248; --r3:#3a404b; --r4:#36506e; --r5:#44699a; --land:#232b38; --land2:#1c222d; --bd:#4a5468; --bd2:#343d4e; --edge:#11151d; --nodata:#1d232d}
 #mk .rt{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
 #mk .rt-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px}
 #mk .rt-bar .seg button{padding:5px 8px;white-space:nowrap}
@@ -1715,7 +1715,7 @@ function draw(){
   const dWait=lv==="dong"&&needDong(items.map(o=>o.k));
   const {C,R}=rankCls(items);
   // 번짐: 경계 안은 옅게만 칠하고, 지역 대표점에서 같은 색이 둥글게 번지게(청약 지도의 번짐과 같은 방식)
-  const GL=STY==="glow", soft=c=>c==null?"var(--nodata)":`color-mix(in oklab,var(--r${c+1}) 38%,var(--land))`;
+  const GL=STY==="glow", soft=c=>c==null?"var(--nodata)":`color-mix(in oklab,var(--g${c+1}) 50%,var(--land))`;   // 번짐은 더 진한 전용 색(--g1~5)
   const fillOf=k=>{ if(lv==="dong") return "var(--land)"; const c=lv==="sido"?C.get(sidoOf(k)):C.get(k); return GL?soft(c):CC(c); };
   let s=`<svg viewBox="${vb.map(v=>v.toFixed(1)).join(" ")}" width="${W}" height="${H}" role="img" aria-label="아파트 실거래가 ${rngL()} 변동률 지도">`;
   if(MP.nk) s+=`<path class="nk" d="${MP.nk}" vector-effect="non-scaling-stroke"/>`;
@@ -1725,7 +1725,7 @@ function draw(){
   const op=1;   // 색은 붙은 칸끼리도 구분되는 차분한 톤으로 골라 그대로 칠한다
   for(const k in PY){ if(k==="경북|울릉군"){ if(zk<2.2) sub(MP.ul.d).forEach(r=>{ const [tx,ty]=ulT(r); s+=`<path class="rg" data-r="${esc(k)}" d="M${r}" transform="translate(${tx.toFixed(0)} ${ty.toFixed(0)})" style="fill:${fillOf(k)};fill-opacity:${op}" vector-effect="non-scaling-stroke"/>`; }); continue; }
     s+=`<path class="rg" data-r="${esc(k)}" d="${PY[k]}" fill-rule="evenodd" style="fill:${fillOf(k)};fill-opacity:${op}" vector-effect="non-scaling-stroke"/>`; }
-  if(GL){ s+=`<defs>${[1,2,3,4,5].map(i=>`<radialGradient id="rtg${i}"><stop offset="0" style="stop-color:var(--r${i});stop-opacity:.95"/><stop offset=".5" style="stop-color:var(--r${i});stop-opacity:.5"/><stop offset="1" style="stop-color:var(--r${i});stop-opacity:0"/></radialGradient>`).join("")}</defs>`;
+  if(GL){ s+=`<defs>${[1,2,3,4,5].map(i=>`<radialGradient id="rtg${i}"><stop offset="0" style="stop-color:var(--g${i});stop-opacity:1"/><stop offset=".55" style="stop-color:var(--g${i});stop-opacity:.62"/><stop offset="1" style="stop-color:var(--g${i});stop-opacity:0"/></radialGradient>`).join("")}</defs>`;
     // 번짐 크기: 시 · 군 · 구 넓이(한 변)에 비례, 법정동은 약 2km(화면에서 너무 작지 않게)
     const G=lv==="dong"?items.filter(o=>C.get(o.k)!=null).map(o=>({x:o.x,y:o.y,c:C.get(o.k),r:Math.max(18,10*u)}))
       :Object.keys(PY).filter(k=>k!=="경북|울릉군"&&MP.pts[k]).map(k=>{ const c=lv==="sido"?C.get(sidoOf(k)):C.get(k); if(c==null) return null; const [x,y]=MP.pts[k]; return {x,y,c,r:Math.max(((MP.sa||{})[k]||20)*.9,12*u)}; }).filter(Boolean);
@@ -1772,7 +1772,7 @@ function draw(){
   // 범례 범위 숫자도 지도 이름표처럼 오름은 빨강 · 내림은 파랑
   const vT=v=>`<span class="${v>0?"up":v<0?"dn":""}">${arrow(v)}${pctT(v)}</span>`;
   const rng=a=>a.length?(a.length===1||Math.abs(a[0]-a[a.length-1])<.05?vT(a[0]):`${vT(a[a.length-1])} ~ ${vT(a[0])}`):"–";
-  $("#rt-leg").innerHTML=`<span class="lt">${rngL()} 변동률 · 화면 안 ${lv==="sido"?"시 · 도":lv==="sgg"?"시 · 군 · 구":"법정동"}끼리 순위</span>${R.map((a,i)=>`<span class="k"><i style="background:${GL?`radial-gradient(circle,var(--r${i+1}) 0,color-mix(in srgb,var(--r${i+1}) 50%,transparent) 50%,transparent 80%),${soft(i)}`:`var(--r${i+1})`}"></i>${["상위 20%","20~40%","40~60%","60~80%","하위 20%"][i]} <span>(${rng(a)})</span></span>`).join("")}`;
+  $("#rt-leg").innerHTML=`<span class="lt">${rngL()} 변동률 · 화면 안 ${lv==="sido"?"시 · 도":lv==="sgg"?"시 · 군 · 구":"법정동"}끼리 순위</span>${R.map((a,i)=>`<span class="k"><i style="background:${GL?`radial-gradient(circle,var(--g${i+1}) 0,color-mix(in srgb,var(--g${i+1}) 62%,transparent) 50%,transparent 80%),${soft(i)}`:`var(--r${i+1})`}"></i>${["상위 20%","20~40%","40~60%","60~80%","하위 20%"][i]} <span>(${rng(a)})</span></span>`).join("")}`;
   // 확대 · 이동(사이트 청약 지도와 같은 조작)
   const svg=box.querySelector("svg"), tip=box.querySelector(".tip");
   const zoomTo=(cx,cy,k)=>{ Z=k<=1.01?null:{cx,cy,k:Math.min(KMAX,k)}; draw(); };
