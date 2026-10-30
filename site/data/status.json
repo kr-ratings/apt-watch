@@ -1,6 +1,33 @@
 {
- "generated": "2026-10-30 13:51",
+ "generated": "2026-10-30 16:21",
  "sources": {
+  "단지별 미분양(지자체)": {
+   "ok": true,
+   "regions": 11,
+   "of": 12,
+   "failed": []
+  },
+  "착공 · 인허가": {
+   "ok": true,
+   "through": "2026-09"
+  },
+  "시군구 입주": {
+   "ok": true,
+   "units": 228
+  },
+  "입주 · 수요": {
+   "ok": true,
+   "kapt": "2026.10.30",
+   "plan_basis": "2026년 6월 말",
+   "pop": "2026-09",
+   "notices": 760
+  },
+  "통계누리": {
+   "ok": true,
+   "latest": "2026-09",
+   "regions": 249,
+   "long": 61
+  },
   "청약홈": {
    "ok": true,
    "rows": 395,
@@ -29,34 +56,6 @@
   "한국은행 ECOS": {
    "ok": false,
    "error": "접속 실패 · 저장된 값으로 계산"
-  },
-  "통계누리": {
-   "ok": false,
-   "error": "이번 수집이 끝까지 진행되지 못함(원출처 응답 지연 등) · 직전 값 표시"
-  },
-  "단지별 미분양(지자체)": {
-   "ok": true,
-   "regions": 6,
-   "of": 12,
-   "failed": [
-    "부산",
-    "인천",
-    "대전",
-    "울산",
-    "경기"
-   ]
-  },
-  "입주 · 수요": {
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='jumin.mois.go.kr', port=443): Max retries exceeded with url: /statMonth.do (Caused by ConnectTimeoutError(<HTTPSConnection(host='jumin.mois.go.kr', port=443) at 0x7f8c66ddbc20>, 'Connection to jumin.mois.go.kr timed out. (connect timeout=60)'))"
-  },
-  "착공 · 인허가": {
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='stat.molit.go.kr', port=443): Max retries exceeded with url: /portal/stat/data.do?formId=5387&styleNum=1&apprYn=Y&startDate=201101&endDate=201512 (Caused by ConnectTimeoutError(<HTTPSConnection(host='stat.molit.go.kr', port=443) at 0x7f8c66ddd670>, 'Connection to stat.molit"
-  },
-  "시군구 입주": {
-   "ok": true,
-   "units": 228
   }
  }
 }

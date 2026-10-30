@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-30 11:11",
+ "generated": "2026-10-30 16:21",
  "items": [
   {
    "code": "seoul",
@@ -36,8 +36,8 @@
    "key": "2026년 9월 미분양주택 현황|https://www.busan.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=1760879&fileTy=ATTACH&fileNo=1",
    "fetched": "2026-10-27",
    "checked": "2026-10-30",
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='www.busan.go.kr', port=443): Max retries exceeded with url: /depart/absalesinfo (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.busan.go.kr', port=443) at 0x7fd132b",
+   "ok": true,
+   "error": null,
    "note": null
   },
   {
@@ -64,21 +64,20 @@
    "code": "incheon",
    "rg": "인천",
    "org": "인천광역시",
-   "title": "2026년 8월 기준 인천광역시 공동주택 미분양 현황 알림",
-   "month": "2026-08",
-   "posted": "2026-09-17",
-   "post": "https://www.incheon.go.kr/build/BU050301/3088311",
+   "title": "2026년 9월 기준 인천광역시 공동주택 미분양 현황 알림",
+   "month": "2026-09",
+   "posted": "2026-10-29",
+   "post": "https://www.incheon.go.kr/build/BU050301/3092671",
    "board": "https://www.incheon.go.kr/build/BU050301?srchKey=sj&srchText=%EB%AF%B8%EB%B6%84%EC%96%91%20%ED%98%84%ED%99%A9",
    "file": "data/units/incheon.xls",
    "ext": "xls",
-   "size": 90112,
-   "orig": "미분양 주택 현황(2026. 8. 31. 기준, 인천, 게시용).xls",
-   "key": "2026년 8월 기준 인천광역시 공동주택 미분양 현황 알림|https://www.incheon.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=3088311&fileTy=ATTACH&fileNo=1",
-   "fetched": "2026-10-20",
+   "size": 89088,
+   "orig": "미분양 주택 현황(2026. 9. 30. 기준， 인천， 게시용).xls",
+   "key": "2026년 9월 기준 인천광역시 공동주택 미분양 현황 알림|https://www.incheon.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=3092671&fileTy=ATTACH&fileNo=3",
+   "fetched": "2026-10-30",
    "checked": "2026-10-30",
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='www.incheon.go.kr', port=443): Max retries exceeded with url: /build/BU050301?srchKey=sj&srchText=%EB%AF%B8%EB%B6%84%EC%96%91%20%ED%98%84%ED%99%A9 (Caused by ConnectTimeoutEr",
-   "note": null
+   "ok": true,
+   "error": null
   },
   {
    "code": "daejeon",
@@ -96,8 +95,8 @@
    "key": "2026년 8월말 기준 대전광역시 미분양 주택현황|https://www.daejeon.go.kr/cmm/Download.do?filePath=FileUpload%2FCommonBoard%2Fnormal_0033%2F20261001032731794.pdf&fileName=%E2%98%85%EB%AF%B8%EB%B6%84%EC%96%91%EC%97%85%EC%B2%B4%EB%B3%84%ED%98%84%ED%99%A926.8%EA%B8%B0%EC%A4%80_%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80.pdf",
    "fetched": "2026-10-11",
    "checked": "2026-10-30",
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='www.daejeon.go.kr', port=443): Max retries exceeded with url: /urb/UrbNormalboardList.do?boardId=normal_0033&menuSeq=1246&searchCondition=title&searchKeyword=%EB%AF%B8%EB%B6%",
+   "ok": true,
+   "error": null,
    "note": null
   },
   {
@@ -116,29 +115,28 @@
    "key": "울산광역시 미분양 주택 통계자료(2026. 8월)|https://www.ulsan.go.kr/u/enc/media/bbsFileDown.do?bbsId=BBS_0000000000000102&atchFileId=6vwkZxC2phVW5QBFUW7bb2EmhQf%2FdgGpOyvi84KeJ9U%3D&fileSn=QHy5PbVvoXXAx1%2B3dKbTsQ%3D%3D",
    "fetched": "2026-10-11",
    "checked": "2026-10-30",
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='www.ulsan.go.kr', port=443): Max retries exceeded with url: /u/metro/bbs/list.ulsan?bbsId=BBS_0000000000000102&mId=001004013000000000 (Caused by ConnectTimeoutError(<HTTPSCon",
+   "ok": true,
+   "error": null,
    "note": null
   },
   {
    "code": "gyeonggi",
    "rg": "경기",
    "org": "경기도",
-   "title": "경기도미분양아파트현황(2026년 08월 31일기준)",
-   "month": "2026-08",
-   "posted": "2026-09-30",
-   "post": "https://www.gg.go.kr/bbs/boardView.do?bIdx=266126616&bsIdx=551&bcIdx=0&menuId=1799",
+   "title": "경기도미분양아파트현황(2026년 09월 30일기준)",
+   "month": "2026-09",
+   "posted": "2026-10-30",
+   "post": "https://www.gg.go.kr/bbs/boardView.do?bIdx=272390390&bsIdx=551&bcIdx=0&menuId=1799",
    "board": "https://www.gg.go.kr/bbs/board.do?bsIdx=551&menuId=1799",
    "file": "data/units/gyeonggi.xlsx",
    "ext": "xlsx",
-   "size": 889880,
-   "orig": "경기도 미분양 주택현황(26년 08월 31일 기준)(최종, 취합).xlsx",
-   "key": "경기도미분양아파트현황(2026년 08월 31일기준)|https://www.gg.go.kr/cmmn/download.do?idx=902960",
-   "fetched": "2026-10-11",
+   "size": 887544,
+   "orig": "경기도 미분양 주택현황(26년 09월 30일 기준)(최종, 제출).xlsx",
+   "key": "경기도미분양아파트현황(2026년 09월 30일기준)|https://www.gg.go.kr/cmmn/download.do?idx=905232",
+   "fetched": "2026-10-30",
    "checked": "2026-10-30",
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='www.gg.go.kr', port=443): Max retries exceeded with url: /ajax/board/getList.do (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.gg.go.kr', port=443) at 0x7fd132bcd1",
-   "note": null
+   "ok": true,
+   "error": null
   },
   {
    "code": "gangwon",
