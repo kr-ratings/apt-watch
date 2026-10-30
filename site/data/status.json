@@ -1,6 +1,17 @@
 {
- "generated": "2026-10-30 13:50",
+ "generated": "2026-10-30 13:51",
  "sources": {
+  "청약홈": {
+   "ok": true,
+   "rows": 395,
+   "fails": 0,
+   "fetched": 35,
+   "geo": {
+    "vworld": 0,
+    "bjd": 370,
+    "none": 25
+   }
+  },
   "모집공고문": {
    "ok": true,
    "read_now": 1,
@@ -9,17 +20,6 @@
    "rows": 394,
    "bal": 271,
    "mid": 289
-  },
-  "청약홈": {
-   "ok": true,
-   "rows": 394,
-   "fails": 0,
-   "fetched": 35,
-   "geo": {
-    "vworld": 0,
-    "bjd": 369,
-    "none": 25
-   }
   },
   "국토부 실거래가": {
    "ok": true,
