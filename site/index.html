@@ -1622,6 +1622,9 @@ $("#dl-units").addEventListener("click",async()=>{ const b=$("#dl-units"), t=b.l
   MAP=mp;
   SUP=sup; UNITS=un;
   SUB=s; UN=u; REG=buildReg();
+  // 운영자가 따로 정한 예외(규칙과 별개): 아래 단지는 접수가 끝난 뒤 '미달 N세대' 대신 '접수 종료'로만 적는다
+  const ST_EXC=[/^트리븐\s*센텀\s*[12]\s*단지/];
+  if(SUB&&SUB.rows) SUB.rows.forEach(r=>{ if(r.status&&r.status.startsWith("미달")&&ST_EXC.some(x=>x.test(r.name||""))) r.status="접수 종료"; });
   if(UN){ const n=UN.months.length; UN.regions.forEach(r=>{ UNSIDO.add(r.sido); UNMAP.set(r.sido+"|"+r.sgg,{sido:r.sido,sgg:r.sgg,t:r.total[n-1],d:r.done[n-1]}); });
     const sidos=[...UNSIDO]; $("#u-sido").insertAdjacentHTML("beforeend",sidos.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(""));
     $("#un-note").textContent=`${ym(UN.months[n-1])}월 기준 · 전월 · 1년 전(${ym(UN.months[0])})과 비교`; }
