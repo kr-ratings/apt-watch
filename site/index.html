@@ -448,10 +448,10 @@ footer .ct{white-space:nowrap}
 #mk .rt{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
 #mk .rt-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px}
 #mk .rt-bar .seg button{padding:5px 8px;white-space:nowrap}
-@media (max-width:560px){#mk .rt-bar .seg{display:grid;grid-template-columns:repeat(4,1fr);width:100%}
+@media (max-width:560px){#mk .rt-bar .seg{display:grid;grid-template-columns:repeat(3,1fr);width:100%}
 #mk .rt-bar .seg button{text-align:center;border-left:0;border-top:1px solid var(--line)}
-#mk .rt-bar .seg button:nth-child(-n+4){border-top:0}
-#mk .rt-bar .seg button:not(:nth-child(4n+1)){border-left:1px solid var(--line)}}
+#mk .rt-bar .seg button:nth-child(-n+3){border-top:0}
+#mk .rt-bar .seg button:not(:nth-child(3n+1)){border-left:1px solid var(--line)}}
 #mk .rt-leg{display:flex;flex-wrap:wrap;align-items:center;gap:5px 12px;font-size:.76rem;color:var(--muted)}
 #mk .rt-leg .lt{color:var(--fg);font-weight:600}
 #mk .rt-leg .k{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -800,6 +800,7 @@ footer .ct{white-space:nowrap}
             <button type="button" data-v="60" aria-pressed="false">5년</button>
             <button type="button" data-v="120" aria-pressed="false">10년</button>
             <button type="button" data-v="180" aria-pressed="false">15년</button>
+            <button type="button" data-v="240" aria-pressed="false">20년</button>
           </div>
           <div class="hrange" role="group" aria-label="기간 직접 지정">
             <select id="rt-sy" aria-label="시작 연도"></select><select id="rt-sm" aria-label="시작 월"></select>
@@ -1648,7 +1649,7 @@ q$("#rt-fold").addEventListener("toggle",async e=>{ if(!e.target.open||RTL) retu
 function initRT(RD){ const MP=RD.map, RT=RD.rt, DP=RD.dpts;
 const $=s=>document.querySelector(s), esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt=n=>n==null?"–":Number(n).toLocaleString("ko-KR");
-const PL={1:"1개월",3:"3개월",6:"6개월",12:"1년",36:"3년",60:"5년",120:"10년",180:"15년"};
+const PL={1:"1개월",3:"3개월",6:"6개월",12:"1년",36:"3년",60:"5년",120:"10년",180:"15년",240:"20년"};
 let P=12, Z=null, SEL=null;   // P: 버튼 기간(개월), -1 = 시작 · 끝 직접 지정
 const MS=RT.months, NM=MS.length-1; let QE=NM, QS=Math.max(0,NM-12);   // 고른 구간의 시작 · 끝 달(MS 순번)
 const rngL=()=>P>0?PL[P]:`${ymd(MS[QS])}~${ymd(MS[QE])}`;
@@ -1823,6 +1824,8 @@ function onR(side){ let a=rIdx(RR.sy.value,RR.sm.value), b=rIdx(RR.ey.value,RR.e
 RR.sy.addEventListener("change",()=>{ rOpts(RR.sm,+RR.sy.value,RR.sm.value); onR("s"); }); RR.sm.addEventListener("change",()=>onR("s"));
 RR.ey.addEventListener("change",()=>{ rOpts(RR.em,+RR.ey.value,RR.em.value); onR("e"); }); RR.em.addEventListener("change",()=>onR("e"));
 syncR();
+// 자료 길이보다 긴 기간 버튼은 감춘다(2006년부터 지난 달을 채우는 동안 20년이 모자랄 때)
+$("#rt-seg").querySelectorAll("button").forEach(b=>{ if(+b.dataset.v>NM) b.style.display="none"; });
 $("#rt-fold").addEventListener("toggle",e=>{ if(e.target.open) draw(); });
 let rw=innerWidth, rtt=null; addEventListener("resize",()=>{ if(Math.abs(innerWidth-rw)<40) return; rw=innerWidth; clearTimeout(rtt); rtt=setTimeout(()=>{ if($("#rt-fold").open) draw(); },200); });
 renderSum(); q$("#rt-sum").dataset.ok="1"; if(q$("#rt-fold").open) draw();

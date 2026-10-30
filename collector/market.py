@@ -8,6 +8,7 @@
 2) 지역별 달 지수 · 평당가 → site/data/rt/main.json(전국 · 시도 · 시군구), d00~.json(법정동, 시도별), sum.json
    - 지수: 같은 단지 반복거래 고정효과 회귀(단지-달 하나 = 가중 1, 달 사이 매끄럽게) — 한국부동산원
      아파트 매매 실거래가격지수(반복매매)와 서울 · 부산 15년 누적이 1~2% 안으로 맞는 방식.
+     2006년 1월(실거래가 공개 시작)부터 — 지도 기간 버튼은 최대 20년.
    - 평당가: 끝 달까지 3개월 [거래금액 합 ÷ 면적 합]. 공급면적은 청약홈 분양 주택형의 공급 ÷ 전용 비율로 환산.
    - 지역별 세대수 가중: 법정동 평당가 × K-apt 동별 세대수(공공임대 제외, cache/kapt_market.json).
 3) 아파트 시가총액(추정) vs M2 → site/data/hm.json
@@ -36,7 +37,8 @@ from collect import CACHE, DATA, log, now_kst
 HERE = Path(__file__).resolve().parent
 RTC = CACHE / "rt"                     # 달별 요약
 OUTR = DATA / "rt"
-FIRST = "201107"                       # 15년 + 3개월 창
+FIRST = "200601"                       # 국토부 실거래가 공개 시작(2006년 1월) — 20년 변동률까지
+BUDGET = 11 * 60                       # 한 번 돌 때 지난 달 채우기에 쓰는 시간(초) — 넘으면 다음 번에 이어서
 EP = "https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev"
 KEY = os.environ.get("DATA_GO_KR_KEY", "").strip()
 ECOS_KEY = os.environ.get("ECOS_API_KEY", "").strip()
@@ -100,7 +102,7 @@ def rt_fetch(status: dict) -> None:
     allm, m = [], FIRST
     while m <= end:
         allm.append(m); m = nxt(m)
-    want = sorted({*allm[-4:], *[x for x in allm if x not in have]}, reverse=True)[:40]   # 한 번에 최대 40달
+    want = sorted({*allm[-4:], *[x for x in allm if x not in have]}, reverse=True)   # 최근 달부터(최근 4개월은 매번 다시)
     if not KEY:
         log("실거래가: 공공데이터포털 키(DATA_GO_KR_KEY)가 없어 저장된 자료로만 만듦")
         return
@@ -150,8 +152,10 @@ def rt_fetch(status: dict) -> None:
                 return rows
             page += 1
 
-    done, t0 = [], time.time()
+    done, t0, recent = [], time.time(), set(allm[-4:])
     for ym in want:
+        if ym not in recent and time.time() - t0 > BUDGET:
+            log("실거래가: 시간 한도 — 남은 지난 달은 다음 번에", len([x for x in want if x not in done and x not in recent])); break
         with cf.ThreadPoolExecutor(5) as ex:
             res = list(ex.map(lambda c: (c, fetch(c, ym)), list(CODE)))
         if stop[0]:
@@ -183,8 +187,10 @@ def rt_fetch(status: dict) -> None:
         tmp = RTC / f"{ym}.json.gz.tmp"; tmp.write_bytes(gzip.compress(json.dumps(out, ensure_ascii=False, separators=(",", ":")).encode(), mtime=0))
         os.replace(tmp, RTC / f"{ym}.json.gz"); done.append(ym)
     log("실거래가: 받은 달", len(done), "/", len(want), "호출", calls[0], f"{time.time() - t0:.0f}초")
-    ok = not stop[0] and len(done) == len(want)
+    ok = not stop[0] and recent <= set(done)                  # 최근 4개월을 다 받았으면 정상(지난 달 채우기는 이어서)
+    left = len(set(allm) - {f.name[:6] for f in RTC.glob("*.json.gz")})
     status["sources"]["국토부 실거래가"] = {"ok": ok, "latest": max(done) if done else None, "months": len(done),
+                                       **({"backfill_left": left} if left else {}),
                                        **({} if ok else {"error": "일부 달을 받지 못함 · 받은 달까지 반영"})}
 
 
@@ -201,12 +207,16 @@ def rt_build(status: dict) -> dict | None:
     if not files:
         log("실거래가: 저장된 달별 자료가 없음"); return None
     ms = [f.name[:6] for f in files]
-    allm, m = [], ms[0]
+    # 끝 달부터 거꾸로 빠짐없이 이어진 구간만 쓴다(지난 달을 채우는 중이거나 한 달이 빠져도 지도는 계속 갱신)
+    have, m = set(ms), ms[-1]
+    while nxt(m, -1) in have:
+        m = nxt(m, -1)
+    if m != ms[0]:
+        log("실거래가: 이어지지 않는 앞쪽 달은 이번 지수에서 뺌", ms[0], "~", nxt(m, -1))
+    files = [f for f in files if f.name[:6] >= m]
+    allm, m = [], m
     while m <= ms[-1]:
         allm.append(m); m = nxt(m)
-    miss = sorted(set(allm) - set(ms))
-    if miss:
-        log("실거래가: 빠진 달이 있어 지수를 새로 만들지 않음", miss[:5]); return None
     T = len(allm); TI = {m: i for i, m in enumerate(allm)}
 
     METRO = ("부산", "대구", "광주", "대전", "울산")          # 5대 광역시(접힌 칸 요약용 묶음)

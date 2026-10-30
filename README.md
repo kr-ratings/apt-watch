@@ -20,7 +20,7 @@
 | `collector/collect.py` | 수집기(청약 · 미분양) |
 | `collector/supply.py` | 입주 · 수요 수집기 |
 | `collector/sgg.py` | K-apt 관리비공개의무단지 기본정보(사용승인일 · 세대수, 매주 게시), 청약홈 분양 공고 입주예정월 · 모집공고문 단지 전체 세대수(`cache/movein.json`), 행안부 전체 시군구 인구 |
-| `collector/market.py` | 국토부 아파트 매매 실거래가(상세) 달별 요약(`cache/rt/YYYYMM.json.gz`, 2011-07~, 최근 4개월은 매번 다시 받음) → 실거래가 지도 자료, 한국은행 ECOS(M2 · 한국부동산원 아파트 매매 실거래가격지수, `cache/ecos.json`) + K-apt 세대수(`cache/kapt_market.json`) → 아파트 시가총액 |
+| `collector/market.py` | 국토부 아파트 매매 실거래가(상세) 달별 요약(`cache/rt/YYYYMM.json.gz`, 2006-01(실거래가 공개 시작)~, 최근 4개월은 매번 다시 받고 빠진 지난 달은 한 번에 11분 안에서 이어 받음) → 실거래가 지도 자료, 한국은행 ECOS(M2 · 한국부동산원 아파트 매매 실거래가격지수, `cache/ecos.json`) + K-apt 세대수(`cache/kapt_market.json`) → 아파트 시가총액 |
 | `collector/units.py` | 시·도 게시판에서 최신 '미분양 주택 현황' 게시물과 첨부 파일을 찾아 받음(서울·부산·인천·대전·울산·경기·강원·충북·충남·경북·경남). 대구는 해외 서버 접속이 자주 막혀, 실패하면 직전 파일을 두고 다음 실행에 다시 시도 |
 | `.github/workflows/update.yml` | 평일 07:10 KST 자동 실행 |
 
