@@ -1,6 +1,26 @@
 {
- "generated": "2026-10-30 16:21",
+ "generated": "2026-10-30 21:16",
  "sources": {
+  "모집공고문": {
+   "ok": true,
+   "read_now": 1,
+   "miss_now": 2,
+   "done": 360,
+   "rows": 397,
+   "bal": 272,
+   "mid": 290
+  },
+  "청약홈": {
+   "ok": true,
+   "rows": 397,
+   "fails": 0,
+   "fetched": 38,
+   "geo": {
+    "vworld": 0,
+    "bjd": 372,
+    "none": 25
+   }
+  },
   "단지별 미분양(지자체)": {
    "ok": true,
    "regions": 11,
@@ -27,26 +47,6 @@
    "latest": "2026-09",
    "regions": 249,
    "long": 61
-  },
-  "청약홈": {
-   "ok": true,
-   "rows": 395,
-   "fails": 0,
-   "fetched": 35,
-   "geo": {
-    "vworld": 0,
-    "bjd": 370,
-    "none": 25
-   }
-  },
-  "모집공고문": {
-   "ok": true,
-   "read_now": 1,
-   "miss_now": 0,
-   "done": 359,
-   "rows": 394,
-   "bal": 271,
-   "mid": 289
   },
   "국토부 실거래가": {
    "ok": true,
