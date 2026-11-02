@@ -1,23 +1,23 @@
 {
- "generated": "2026-11-02 14:02",
+ "generated": "2026-11-02 21:31",
  "sources": {
   "모집공고문": {
    "ok": true,
    "read_now": 0,
    "miss_now": 0,
-   "done": 331,
-   "rows": 366,
-   "bal": 251,
-   "mid": 267
+   "done": 330,
+   "rows": 365,
+   "bal": 250,
+   "mid": 266
   },
   "청약홈": {
    "ok": true,
-   "rows": 366,
+   "rows": 365,
    "fails": 0,
    "fetched": 39,
    "geo": {
     "vworld": 0,
-    "bjd": 345,
+    "bjd": 344,
     "none": 21
    }
   },
