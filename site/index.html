@@ -442,9 +442,9 @@ footer .ct{white-space:nowrap}
 :root[data-theme="dark"] #mk{--s1:#7f9cff;--s2:#f08a4b;--s1-fill:rgba(127,156,255,.12)}
 #mk > section{min-width:0}
 #mk .hk .st{font-size:inherit;font-weight:inherit;padding:0 0 10px;border:0;border-bottom:1px solid var(--line);border-radius:0;white-space:normal;color:inherit}   /* 사이트의 청약 결과 표시(.st)와 이름이 같아 되돌림 */
-#mk{--g1:#d5606f; --g2:#eb9aa4; --g3:#d4d7dd; --g4:#8fb7e6; --g5:#4f8ad3; --r1:#e49ea6; --r2:#f1c5ca; --r3:#eaeaec; --r4:#b8d2f0; --r5:#8fb6e5; --land:#eef0f3; --land2:#f4f5f7; --bd:#b9c0cc; --bd2:#d3d8e0; --edge:#ffffff; --nodata:#f8f8fa}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #mk{--g1:#c25467; --g2:#86505c; --g3:#4a515e; --g4:#3f6898; --g5:#5287cf; --r1:#8a4a56; --r2:#5e4248; --r3:#3a404b; --r4:#36506e; --r5:#44699a; --land:#232b38; --land2:#1c222d; --bd:#4a5468; --bd2:#343d4e; --edge:#11151d; --nodata:#1d232d}}
-:root[data-theme="dark"] #mk{--g1:#c25467; --g2:#86505c; --g3:#4a515e; --g4:#3f6898; --g5:#5287cf; --r1:#8a4a56; --r2:#5e4248; --r3:#3a404b; --r4:#36506e; --r5:#44699a; --land:#232b38; --land2:#1c222d; --bd:#4a5468; --bd2:#343d4e; --edge:#11151d; --nodata:#1d232d}
+#mk{--ga0:.82; --ga1:.5; --ga2:.16; --gs0:.42; --gs1:.25; --gs2:.08; --g1:#d5606f; --g2:#eb9aa4; --g3:#d4d7dd; --g4:#8fb7e6; --g5:#4f8ad3; --r1:#e49ea6; --r2:#f1c5ca; --r3:#eaeaec; --r4:#b8d2f0; --r5:#8fb6e5; --land:#eef0f3; --land2:#f4f5f7; --bd:#b9c0cc; --bd2:#d3d8e0; --edge:#ffffff; --nodata:#f8f8fa}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #mk{--g1:#c25467; --g2:#86505c; --g3:#4a515e; --g4:#3f6898; --g5:#5287cf; --r1:#8a4a56; --r2:#5e4248; --r3:#3a404b; --r4:#36506e; --r5:#44699a; --land:#232b38; --land2:#1c222d; --bd:#4a5468; --bd2:#343d4e; --edge:#11151d; --nodata:#1d232d; --ga0:.95; --ga1:.62; --ga2:.22; --gs0:.66; --gs1:.42; --gs2:.14}}
+:root[data-theme="dark"] #mk{--g1:#c25467; --g2:#86505c; --g3:#4a515e; --g4:#3f6898; --g5:#5287cf; --r1:#8a4a56; --r2:#5e4248; --r3:#3a404b; --r4:#36506e; --r5:#44699a; --land:#232b38; --land2:#1c222d; --bd:#4a5468; --bd2:#343d4e; --edge:#11151d; --nodata:#1d232d; --ga0:.95; --ga1:.62; --ga2:.22; --gs0:.66; --gs1:.42; --gs2:.14}
 #mk .rt{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
 #mk .rt-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px}
 #mk .rt-bar .seg button{padding:5px 8px;white-space:nowrap}
@@ -1714,8 +1714,9 @@ function draw(){
   else items=Object.entries(DP).map(([k,[lon,lat]])=>{ const [x,y]=LL(lon,lat); return {k,x,y}; }).filter(o=>inV(o.x,o.y,20*u)).map(o=>({...o,v:chg(L.dong[o.k]),e:L.dong[o.k],nm:o.k.split("|")[2]}));
   const dWait=lv==="dong"&&needDong(items.map(o=>o.k));
   const {C,R}=rankCls(items);
-  // 번짐: 경계 안은 옅게만 칠하고, 지역 대표점에서 같은 색이 둥글게 번지게(청약 지도의 번짐과 같은 방식)
-  const GL=STY==="glow", soft=c=>c==null?"var(--nodata)":`color-mix(in oklab,var(--g${c+1}) 50%,var(--land))`;   // 번짐은 더 진한 전용 색(--g1~5)
+  // 번짐: 경계 안은 아주 옅게만 칠하고, 지역 대표점에서 같은 색이 둥글게 번지게(청약 지도의 번짐과 같은 방식)
+  // — 번짐 원은 그 지역 크기 안쪽으로만(원 넓이 ≈ 지역 넓이), 바다 · 휴전선 너머로 넘치지 않게 육지 안만, 가운데 단계(40~60%)는 번지지 않게
+  const GL=STY==="glow", soft=c=>c==null?"var(--nodata)":`color-mix(in oklab,var(--g${c+1}) 20%,var(--land))`;   // 번짐은 더 진한 전용 색(--g1~5)
   const fillOf=k=>{ if(lv==="dong") return "var(--land)"; const c=lv==="sido"?C.get(sidoOf(k)):C.get(k); return GL?soft(c):CC(c); };
   let s=`<svg viewBox="${vb.map(v=>v.toFixed(1)).join(" ")}" width="${W}" height="${H}" role="img" aria-label="아파트 실거래가 ${rngL()} 변동률 지도">`;
   if(MP.nk) s+=`<path class="nk" d="${MP.nk}" vector-effect="non-scaling-stroke"/>`;
@@ -1725,11 +1726,14 @@ function draw(){
   const op=1;   // 색은 붙은 칸끼리도 구분되는 차분한 톤으로 골라 그대로 칠한다
   for(const k in PY){ if(k==="경북|울릉군"){ if(zk<2.2) sub(MP.ul.d).forEach(r=>{ const [tx,ty]=ulT(r); s+=`<path class="rg" data-r="${esc(k)}" d="M${r}" transform="translate(${tx.toFixed(0)} ${ty.toFixed(0)})" style="fill:${fillOf(k)};fill-opacity:${op}" vector-effect="non-scaling-stroke"/>`; }); continue; }
     s+=`<path class="rg" data-r="${esc(k)}" d="${PY[k]}" fill-rule="evenodd" style="fill:${fillOf(k)};fill-opacity:${op}" vector-effect="non-scaling-stroke"/>`; }
-  if(GL){ s+=`<defs>${[1,2,3,4,5].map(i=>`<radialGradient id="rtg${i}"><stop offset="0" style="stop-color:var(--g${i});stop-opacity:1"/><stop offset=".55" style="stop-color:var(--g${i});stop-opacity:.62"/><stop offset="1" style="stop-color:var(--g${i});stop-opacity:0"/></radialGradient>`).join("")}</defs>`;
-    // 번짐 크기: 시 · 군 · 구 넓이(한 변)에 비례, 법정동은 약 2km(화면에서 너무 작지 않게)
-    const G=lv==="dong"?items.filter(o=>C.get(o.k)!=null).map(o=>({x:o.x,y:o.y,c:C.get(o.k),r:Math.max(18,10*u)}))
-      :Object.keys(PY).filter(k=>k!=="경북|울릉군"&&MP.pts[k]).map(k=>{ const c=lv==="sido"?C.get(sidoOf(k)):C.get(k); if(c==null) return null; const [x,y]=MP.pts[k]; return {x,y,c,r:Math.max(((MP.sa||{})[k]||20)*.9,12*u)}; }).filter(Boolean);
-    G.filter(o=>inV(o.x,o.y,o.r)).sort((a,b)=>b.r-a.r).forEach(o=>{ s+=`<circle cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="${o.r.toFixed(1)}" fill="url(#rtg${o.c+1})" pointer-events="none"/>`; }); }
+  if(GL){ const ga=lv==="sido"?"gs":"ga";   // 진하기(--ga0~2 · --gs0~2, 어두운 화면은 조금 진하게). 시 · 도 단계는 한 시 · 도 안의 시 · 군 · 구 원이 겹쳐 고르게 번지도록 옅게 · 크게
+    s+=`<defs>${[1,2,4,5].map(i=>`<radialGradient id="rtg${i}"><stop offset="0" style="stop-color:var(--g${i});stop-opacity:var(--${ga}0)"/><stop offset=".38" style="stop-color:var(--g${i});stop-opacity:var(--${ga}1)"/><stop offset=".7" style="stop-color:var(--g${i});stop-opacity:var(--${ga}2)"/><stop offset="1" style="stop-color:var(--g${i});stop-opacity:0"/></radialGradient>`).join("")}<clipPath id="rtland">${MP.sido.map(g=>`<path d="${g.d}"/>`).join("")}</clipPath></defs>`;
+    // 번짐 크기: 시 · 군 · 구는 한 변(MP.sa)의 0.62배 반지름(원 넓이 ≈ 지역 넓이 1.2배, 진한 가운데는 지역 안), 법정동은 약 1.2km
+    const G=lv==="dong"?items.filter(o=>C.get(o.k)!=null).map(o=>({x:o.x,y:o.y,c:C.get(o.k),r:Math.max(11,7*u)}))
+      :Object.keys(PY).filter(k=>k!=="경북|울릉군"&&MP.pts[k]).map(k=>{ const c=lv==="sido"?C.get(sidoOf(k)):C.get(k); if(c==null) return null; const [x,y]=MP.pts[k]; return {x,y,c,r:Math.max(((MP.sa||{})[k]||20)*(lv==="sido"?1:.62),9*u)}; }).filter(Boolean);
+    s+=`<g clip-path="url(#rtland)" pointer-events="none">`;
+    G.filter(o=>o.c!==2&&inV(o.x,o.y,o.r)).sort((a,b)=>b.r-a.r).forEach(o=>{ s+=`<circle cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="${o.r.toFixed(1)}" fill="url(#rtg${o.c+1})"/>`; });
+    s+=`</g>`; }
   MP.sido.forEach(g=>{ s+=`<path class="sd" d="${g.d}" vector-effect="non-scaling-stroke"/>`; });
   if(lv==="dong") items.forEach(o=>{ s+=`<circle class="dg" data-d="${esc(o.k)}" cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="${(o.e?5.5:3.5)*u}" style="fill:${CC(C.get(o.k))}" vector-effect="non-scaling-stroke"/>`; });
   // 라벨: 이름 + 화살표 · 변동률 / 평당가 — 촘촘한 곳(부산 · 서울의 구 등)도 이름이 빠지지 않게
@@ -1772,7 +1776,7 @@ function draw(){
   // 범례 범위 숫자도 지도 이름표처럼 오름은 빨강 · 내림은 파랑
   const vT=v=>`<span class="${v>0?"up":v<0?"dn":""}">${arrow(v)}${pctT(v)}</span>`;
   const rng=a=>a.length?(a.length===1||Math.abs(a[0]-a[a.length-1])<.05?vT(a[0]):`${vT(a[a.length-1])} ~ ${vT(a[0])}`):"–";
-  $("#rt-leg").innerHTML=`<span class="lt">${rngL()} 변동률 · 화면 안 ${lv==="sido"?"시 · 도":lv==="sgg"?"시 · 군 · 구":"법정동"}끼리 순위</span>${R.map((a,i)=>`<span class="k"><i style="background:${GL?`radial-gradient(circle,var(--g${i+1}) 0,color-mix(in srgb,var(--g${i+1}) 62%,transparent) 50%,transparent 80%),${soft(i)}`:`var(--r${i+1})`}"></i>${["상위 20%","20~40%","40~60%","60~80%","하위 20%"][i]} <span>(${rng(a)})</span></span>`).join("")}`;
+  $("#rt-leg").innerHTML=`<span class="lt">${rngL()} 변동률 · 화면 안 ${lv==="sido"?"시 · 도":lv==="sgg"?"시 · 군 · 구":"법정동"}끼리 순위</span>${R.map((a,i)=>`<span class="k"><i style="background:${GL?(i===2?soft(i):`radial-gradient(circle,color-mix(in srgb,var(--g${i+1}) 82%,transparent) 0,color-mix(in srgb,var(--g${i+1}) 50%,transparent) 38%,transparent 75%),${soft(i)}`):`var(--r${i+1})`}"></i>${["상위 20%","20~40%","40~60%","60~80%","하위 20%"][i]} <span>(${rng(a)})</span></span>`).join("")}`;
   // 확대 · 이동(사이트 청약 지도와 같은 조작)
   const svg=box.querySelector("svg"), tip=box.querySelector(".tip");
   const zoomTo=(cx,cy,k)=>{ Z=k<=1.01?null:{cx,cy,k:Math.min(KMAX,k)}; draw(); };
