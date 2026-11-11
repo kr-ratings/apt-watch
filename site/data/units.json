@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-10 13:09",
+ "generated": "2026-11-11 10:58",
  "items": [
   {
    "code": "seoul",
@@ -16,7 +16,7 @@
    "orig": "unsold_20261031.xlsx",
    "key": "서울시 민간 미분양 주택 업체별 현황(2026.9.30 기준)|https://land.seoul.go.kr/land/common/downloadFileNm.do?filePath=%2Fmain%2Fhtrend%2F2026%2F&fileName=unsold_20261031.xlsx",
    "fetched": "2026-11-03",
-   "checked": "2026-11-10",
+   "checked": "2026-11-11",
    "ok": true,
    "error": null
   },
@@ -35,7 +35,7 @@
    "orig": "미분양주택 현황(26.9.30.)부산시(통합)_게재용.xlsx",
    "key": "2026년 9월 미분양주택 현황|https://www.busan.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=1760879&fileTy=ATTACH&fileNo=1",
    "fetched": "2026-10-27",
-   "checked": "2026-11-10",
+   "checked": "2026-11-11",
    "ok": true,
    "error": null,
    "note": null
@@ -55,9 +55,9 @@
    "orig": "2026년 9월말 공동주택 미분양 현황 (홈페이지).xlsx",
    "key": "2026년 9월말 대구 공동주택 미분양 현황|https://www.daegu.go.kr/icms/cmm/fms/FileDown.do?atchFileId=FILE_000000000728147&fileSn=1",
    "fetched": "2026-11-02",
-   "checked": "2026-11-10",
-   "ok": false,
-   "error": "HTTPSConnectionPool(host='www.daegu.go.kr', port=443): Max retries exceeded with url: /build/index.do?menu_id=00001338&menu_link=/icms/bbs/selectBoardList.do&bbsId=BBS_00153&searchCnd=0&searchWrd=%EA%",
+   "checked": "2026-11-11",
+   "ok": true,
+   "error": null,
    "note": "대구시 홈페이지가 해외 서버 접속을 자주 막아 아직 받지 못했습니다"
   },
   {
@@ -75,7 +75,7 @@
    "orig": "미분양 주택 현황(2026. 9. 30. 기준， 인천， 게시용).xls",
    "key": "2026년 9월 기준 인천광역시 공동주택 미분양 현황 알림|https://www.incheon.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=3092671&fileTy=ATTACH&fileNo=3",
    "fetched": "2026-10-30",
-   "checked": "2026-11-10",
+   "checked": "2026-11-11",
    "ok": true,
    "error": null
   },
@@ -94,7 +94,7 @@
    "orig": "★미분양업체별현황26.9.기준_홈페이지.pdf",
    "key": "2026년 9월말 기준 대전광역시 미분양 주택현황|https://www.daejeon.go.kr/cmm/Download.do?filePath=FileUpload%2FCommonBoard%2Fnormal_0033%2F20261102085211651.pdf&fileName=%E2%98%85%EB%AF%B8%EB%B6%84%EC%96%91%EC%97%85%EC%B2%B4%EB%B3%84%ED%98%84%ED%99%A926.9.%EA%B8%B0%EC%A4%80_%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80.pdf",
    "fetched": "2026-11-03",
-   "checked": "2026-11-10",
+   "checked": "2026-11-11",
    "ok": true,
    "error": null
   },
@@ -113,7 +113,7 @@
    "orig": "미분양 주택 현황 보고(2026년9월30일)-홈페이지.xlsx",
    "key": "울산광역시 미분양 주택 통계자료(2026. 9월)|https://www.ulsan.go.kr/u/enc/media/bbsFileDown.do?bbsId=BBS_0000000000000102&atchFileId=6vwkZxC2phVW5QBFUW7bb109LvNVfFLELPQz%2BlXWhjk%3D&fileSn=QHy5PbVvoXXAx1%2B3dKbTsQ%3D%3D",
    "fetched": "2026-11-02",
-   "checked": "2026-11-10",
+   "checked": "2026-11-11",
    "ok": true,
    "error": null,
    "note": null
@@ -133,7 +133,7 @@
    "orig": "경기도 미분양 주택현황(26년 09월 30일 기준)(최종, 제출).xlsx",
    "key": "경기도미분양아파트현황(2026년 09월 30일기준)|https://www.gg.go.kr/cmmn/download.do?idx=905232",
    "fetched": "2026-10-30",
-   "checked": "2026-11-10",
+   "checked": "2026-11-11",
    "ok": true,
    "error": null
   },
@@ -152,7 +152,7 @@
    "orig": "'26. 9월 말 기준 미분양 주택 현황(강원특별자치도).xlsx",
    "key": "미분양 주택 현황(2026년 9월말 기준)|https://state.gwd.go.kr/egf/bp/common/front/266944/download",
    "fetched": "2026-11-05",
-   "checked": "2026-11-10",
+   "checked": "2026-11-11",
    "ok": true,
    "error": null
   },
@@ -171,7 +171,7 @@
    "orig": "26.9.30.기준 미분양 주택현황(충청북도)_업체별현황.pdf",
    "key": "2026년 9월 30일 기준 미분양 현황입니다.|https://www.chungbuk.go.kr/www/downloadBbsFile.do?key=646&bbsNo=97&atchmnflNo=297282",
    "fetched": "2026-10-28",
-   "checked": "2026-11-10",
+   "checked": "2026-11-11",
    "ok": true,
    "error": null
   },
@@ -179,18 +179,18 @@
    "code": "chungnam",
    "rg": "충남",
    "org": "충청남도",
-   "title": "2026년 8월말 기준 미분양 주택현황",
-   "month": "2026-08",
+   "title": "2026년 9월말 기준 미분양 주택현황",
+   "month": "2026-09",
    "posted": null,
-   "post": "https://www.chungnam.go.kr/cnportal/bbs/B0000134/view.do?nttId=2184718&menuNo=500176&searchCnd=1&searchWrd=%EB%AF%B8%EB%B6%84%EC%96%91&pageUnit=10&pageIndex=1",
+   "post": "https://www.chungnam.go.kr/cnportal/bbs/B0000134/view.do?nttId=2185909&menuNo=500176&searchCnd=1&searchWrd=%EB%AF%B8%EB%B6%84%EC%96%91&pageUnit=10&pageIndex=1",
    "board": "https://www.chungnam.go.kr/cnportal/bbs/B0000134/list.do?menuNo=500176&searchCnd=1&searchWrd=%EB%AF%B8%EB%B6%84%EC%96%91",
    "file": "data/units/chungnam.xlsx",
    "ext": "xlsx",
-   "size": 624792,
-   "orig": "충청남도 미분양 주택 현황(2026. 8. 31.)_공개용.xlsx",
-   "key": "2026년 8월말 기준 미분양 주택현황|https://www.chungnam.go.kr/cnportal/cmmn/file/fileDown.do?menuNo=500176&atchFileId=735e0951adfa44229bf8c67b526a66db&fileSn=1&bbsId=B0000134",
-   "fetched": "2026-10-16",
-   "checked": "2026-11-10",
+   "size": 628142,
+   "orig": "충청남도 미분양 주택 현황(2026. 9. 30.)_충청남도(공개용).xlsx",
+   "key": "2026년 9월말 기준 미분양 주택현황|https://www.chungnam.go.kr/cnportal/cmmn/file/fileDown.do?menuNo=500176&atchFileId=d9ddbe4145db4b94be4ab4c625fdf94c&fileSn=1&bbsId=B0000134",
+   "fetched": "2026-11-11",
+   "checked": "2026-11-11",
    "ok": true,
    "error": null
   },
@@ -209,7 +209,7 @@
    "orig": "미분양 주택 현황(26.9월말)_경북(홈페이지).xlsx",
    "key": "경상북도 공동주택 미분양 현황(2026년 9월말 기준)|https://www.gb.go.kr/Common/board_egov/download.jsp?B_STEP=515206000&B_ORDER=1",
    "fetched": "2026-11-05",
-   "checked": "2026-11-10",
+   "checked": "2026-11-11",
    "ok": true,
    "error": null
   },
@@ -228,7 +228,7 @@
    "orig": "(경남)미분양 주택 현황('26.9월말).xlsx",
    "key": "2026년 9월말 미분양 주택 현황|https://gis.gyeongnam.go.kr/srp/unsold/52/20261106-095852546_747.xlsx",
    "fetched": "2026-11-09",
-   "checked": "2026-11-10",
+   "checked": "2026-11-11",
    "ok": true,
    "error": null
   }
