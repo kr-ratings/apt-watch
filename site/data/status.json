@@ -1,9 +1,9 @@
 {
- "generated": "2026-11-13 21:07",
+ "generated": "2026-11-14 03:44",
  "sources": {
   "모집공고문": {
    "ok": true,
-   "read_now": 1,
+   "read_now": 0,
    "miss_now": 0,
    "done": 345,
    "rows": 379,
@@ -14,7 +14,7 @@
    "ok": true,
    "rows": 379,
    "fails": 0,
-   "fetched": 39,
+   "fetched": 37,
    "geo": {
     "vworld": 0,
     "bjd": 357,
