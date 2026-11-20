@@ -1,26 +1,6 @@
 {
- "generated": "2026-11-20 04:38",
+ "generated": "2026-11-20 12:15",
  "sources": {
-  "모집공고문": {
-   "ok": true,
-   "read_now": 1,
-   "miss_now": 4,
-   "done": 351,
-   "rows": 385,
-   "bal": 265,
-   "mid": 285
-  },
-  "청약홈": {
-   "ok": true,
-   "rows": 385,
-   "fails": 0,
-   "fetched": 38,
-   "geo": {
-    "vworld": 0,
-    "bjd": 363,
-    "none": 22
-   }
-  },
   "국토부 실거래가": {
    "ok": true,
    "latest": "202610",
@@ -35,9 +15,7 @@
    "ok": true,
    "regions": 11,
    "of": 12,
-   "failed": [
-    "부산"
-   ]
+   "failed": []
   },
   "착공 · 인허가": {
    "ok": true,
@@ -49,16 +27,36 @@
   },
   "입주 · 수요": {
    "ok": true,
-   "kapt": "2026.11.13",
+   "kapt": "2026.11.20",
    "plan_basis": "2026년 6월 말",
    "pop": "2026-10",
-   "notices": 753
+   "notices": 758
   },
   "통계누리": {
    "ok": true,
    "latest": "2026-09",
    "regions": 249,
    "long": 61
+  },
+  "모집공고문": {
+   "ok": true,
+   "read_now": 2,
+   "miss_now": 0,
+   "done": 353,
+   "rows": 387,
+   "bal": 267,
+   "mid": 287
+  },
+  "청약홈": {
+   "ok": true,
+   "rows": 387,
+   "fails": 0,
+   "fetched": 37,
+   "geo": {
+    "vworld": 0,
+    "bjd": 365,
+    "none": 22
+   }
   }
  }
 }
