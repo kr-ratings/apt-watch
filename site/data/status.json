@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-24 23:47",
+ "generated": "2026-11-25 06:31",
  "sources": {
   "모집공고문": {
    "ok": true,
@@ -14,7 +14,7 @@
    "ok": true,
    "rows": 389,
    "fails": 0,
-   "fetched": 42,
+   "fetched": 43,
    "geo": {
     "vworld": 0,
     "bjd": 364,
