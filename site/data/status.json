@@ -1,6 +1,26 @@
 {
- "generated": "2026-11-26 13:13",
+ "generated": "2026-11-26 22:49",
  "sources": {
+  "모집공고문": {
+   "ok": true,
+   "read_now": 0,
+   "miss_now": 1,
+   "done": 357,
+   "rows": 392,
+   "bal": 271,
+   "mid": 291
+  },
+  "청약홈": {
+   "ok": true,
+   "rows": 392,
+   "fails": 0,
+   "fetched": 41,
+   "geo": {
+    "vworld": 0,
+    "bjd": 366,
+    "none": 26
+   }
+  },
   "국토부 실거래가": {
    "ok": true,
    "latest": "202610",
@@ -39,26 +59,6 @@
    "latest": "2026-09",
    "regions": 249,
    "long": 61
-  },
-  "모집공고문": {
-   "ok": true,
-   "read_now": 1,
-   "miss_now": 0,
-   "done": 357,
-   "rows": 391,
-   "bal": 271,
-   "mid": 291
-  },
-  "청약홈": {
-   "ok": true,
-   "rows": 391,
-   "fails": 0,
-   "fetched": 41,
-   "geo": {
-    "vworld": 0,
-    "bjd": 365,
-    "none": 26
-   }
   }
  }
 }
