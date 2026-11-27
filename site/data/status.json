@@ -1,26 +1,6 @@
 {
- "generated": "2026-11-27 05:32",
+ "generated": "2026-11-27 13:18",
  "sources": {
-  "모집공고문": {
-   "ok": true,
-   "read_now": 3,
-   "miss_now": 4,
-   "done": 360,
-   "rows": 395,
-   "bal": 274,
-   "mid": 294
-  },
-  "청약홈": {
-   "ok": true,
-   "rows": 395,
-   "fails": 0,
-   "fetched": 45,
-   "geo": {
-    "vworld": 0,
-    "bjd": 369,
-    "none": 26
-   }
-  },
   "국토부 실거래가": {
    "ok": true,
    "latest": "202610",
@@ -33,11 +13,9 @@
   },
   "단지별 미분양(지자체)": {
    "ok": true,
-   "regions": 11,
+   "regions": 12,
    "of": 12,
-   "failed": [
-    "부산"
-   ]
+   "failed": []
   },
   "착공 · 인허가": {
    "ok": true,
@@ -49,16 +27,36 @@
   },
   "입주 · 수요": {
    "ok": true,
-   "kapt": "2026.11.20",
+   "kapt": "2026.11.27",
    "plan_basis": "2026년 6월 말",
    "pop": "2026-10",
-   "notices": 762
+   "notices": 768
   },
   "통계누리": {
    "ok": true,
    "latest": "2026-09",
    "regions": 249,
    "long": 61
+  },
+  "모집공고문": {
+   "ok": true,
+   "read_now": 2,
+   "miss_now": 0,
+   "done": 362,
+   "rows": 397,
+   "bal": 276,
+   "mid": 295
+  },
+  "청약홈": {
+   "ok": true,
+   "rows": 397,
+   "fails": 0,
+   "fetched": 41,
+   "geo": {
+    "vworld": 0,
+    "bjd": 371,
+    "none": 26
+   }
   }
  }
 }
